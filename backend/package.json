@@ -1,0 +1,34 @@
+{
+  "name": "etms-backend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "ETMS REST API service (Clean Architecture).",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node --test dist/**/*.test.js",
+    "migrate": "node dist/scripts/migrate.js",
+    "seed": "node dist/scripts/seed.js",
+    "seed:platform": "node dist/scripts/seed-platform.js",
+    "worker": "node dist/scripts/notification-worker.js",
+    "create-app-role": "node dist/scripts/create-app-role.js",
+    "create-platform-role": "node dist/scripts/create-platform-role.js",
+    "start": "node dist/index.js",
+    "dev": "node --watch --experimental-strip-types src/index.ts"
+  },
+  "dependencies": {
+    "@node-saml/node-saml": "^5.1.0",
+    "fastify": "^4.28.1",
+    "pg": "^8.12.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "@types/pg": "^8.11.6",
+    "typescript": "^5.5.4"
+  }
+}

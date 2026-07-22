@@ -1,0 +1,46 @@
+{
+  "@@locale": "en",
+  "appTitle": "ETMS",
+  "@appTitle": { "description": "Application name" },
+
+  "navHome": "Home",
+  "navTrips": "Trips",
+  "navBookings": "Bookings",
+  "navProfile": "Profile",
+
+  "loginTitle": "Sign in",
+  "loginEmail": "Email",
+  "loginPassword": "Password",
+  "loginSubmit": "Sign in",
+  "loginError": "Sign-in failed. Check your credentials.",
+  "logout": "Sign out",
+
+  "tripsToday": "Today's trips",
+  "tripStatusScheduled": "Scheduled",
+  "tripStatusAssigned": "Assigned",
+  "tripStatusInProgress": "In progress",
+  "tripStatusCompleted": "Completed",
+  "tripStatusCancelled": "Cancelled",
+  "tripStatusException": "Exception",
+
+  "seatsLabel": "{taken} / {capacity} seats",
+  "@seatsLabel": {
+    "placeholders": {
+      "taken": { "type": "int" },
+      "capacity": { "type": "int" }
+    }
+  },
+
+  "syncSynced": "Synced",
+  "syncPending": "{count} pending",
+  "@syncPending": { "placeholders": { "count": { "type": "int" } } },
+  "syncFailed": "Sync failed — retry",
+  "offlineBanner": "You are offline. Changes are saved and will sync.",
+
+  "commonRetry": "Retry",
+  "commonCancel": "Cancel",
+  "commonSave": "Save",
+  "emptyTitle": "Nothing here yet",
+  "errorGeneric": "Something went wrong",
+  "sos": "SOS"
+}

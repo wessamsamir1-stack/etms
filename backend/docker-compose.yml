@@ -1,0 +1,81 @@
+# Local ETMS stack: Postgres+PostGIS, a one-shot migrate job, then the API.
+# Build context is the repo root so migrations are bundled into the image.
+#   docker compose -f backend/docker-compose.yml up --build
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: etms
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d etms"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # Applies migrations (as admin), then creates the non-superuser app login role
+  # the API uses so Row-Level Security is enforced. Runs once and exits.
+  migrate:
+    build:
+      context: ..
+      dockerfile: backend/Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      MIGRATE_DATABASE_URL: postgres://postgres:postgres@db:5432/etms
+      APP_DB_USER: etms_app_login
+      APP_DB_PASSWORD: ${APP_DB_PASSWORD:-app-dev-pass}
+      # Platform (Super-Admin) BYPASSRLS login role + first operator — also used
+      # by the notification worker's cross-tenant connection.
+      PLATFORM_DB_USER: etms_platform_login
+      PLATFORM_DB_PASSWORD: ${PLATFORM_DB_PASSWORD:-platform-dev-pass}
+      PLATFORM_ADMIN_EMAIL: ${PLATFORM_ADMIN_EMAIL:-root@etms.app}
+      PLATFORM_ADMIN_PASSWORD: ${PLATFORM_ADMIN_PASSWORD:-Platform0wner!}
+    command: sh -c "node dist/scripts/migrate.js && node dist/scripts/create-app-role.js && node dist/scripts/create-platform-role.js && node dist/scripts/seed.js && node dist/scripts/seed-platform.js"
+    restart: "no"
+
+  api:
+    build:
+      context: ..
+      dockerfile: backend/Dockerfile
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      PORT: 8080
+      NODE_ENV: production
+      # Connect as the RLS-enforced login role (NOT the postgres superuser).
+      DATABASE_URL: postgres://etms_app_login:${APP_DB_PASSWORD:-app-dev-pass}@db:5432/etms
+      JWT_SECRET: ${JWT_SECRET:-dev-jwt-secret}
+      QR_SECRET: ${QR_SECRET:-dev-qr-secret}
+      # Let the web dashboard (docs/etms/admin-dashboard-app.html) call the API.
+      CORS_ORIGIN: ${CORS_ORIGIN:-*}
+    ports:
+      - "8080:8080"
+
+  # Standalone notification worker: drains the `notification` outbox and delivers
+  # via the channel providers. Connects as the BYPASSRLS platform role so it
+  # works across tenants. In-memory providers by default — set real gateway keys
+  # (FCM/Twilio/SMTP) to deliver for real.
+  worker:
+    build:
+      context: ..
+      dockerfile: backend/Dockerfile
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      NODE_ENV: production
+      WORKER_DATABASE_URL: postgres://etms_platform_login:${PLATFORM_DB_PASSWORD:-platform-dev-pass}@db:5432/etms
+      WORKER_INTERVAL_MS: ${WORKER_INTERVAL_MS:-2000}
+    command: sh -c "node dist/scripts/notification-worker.js"
+    restart: unless-stopped
+
+volumes:
+  db_data:

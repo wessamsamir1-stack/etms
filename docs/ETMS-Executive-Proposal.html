@@ -1,0 +1,809 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Employee Transportation — Digital Transformation Proposal</title>
+<style>
+:root{
+  --navy:#102439; --navy2:#173250; --ink:#1b2a3b; --paper:#f7f4ee; --paper2:#efe9dd;
+  --gold:#bd9a3c; --gold-soft:#e8dcb8; --teal:#2c6e7f; --green:#2f6b4f; --rose:#9a3b46;
+  --muted:#6a7686; --faint:#9aa3b0; --line:#ddd4c2; --line-dk:#24405f;
+  --serif:Georgia,'Times New Roman',serif;
+  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:var(--sans);color:var(--ink);background:#8894a6;font-size:16px;line-height:1.62;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{font-family:var(--serif);font-weight:700;letter-spacing:-.01em;margin:0}
+p{margin:0 0 14px}
+.tnum{font-variant-numeric:tabular-nums}
+em{color:var(--gold);font-style:italic}
+strong{color:var(--navy)}
+
+/* ---- page model (screen = stacked sheets; print = real pages) ---- */
+.sheet{width:210mm;min-height:296mm;margin:16px auto;background:var(--paper);position:relative;
+  padding:26mm 24mm;box-shadow:0 12px 40px #0006}
+.cover{overflow:hidden}
+.sheet.dark{background:var(--navy);color:#eaf0f8}
+.sheet.dark h1,.sheet.dark h2,.sheet.dark h3{color:#fff}
+.eyebrow{font-family:var(--sans);font-size:11.5px;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--gold)}
+.rule{height:2px;background:var(--gold);width:64px;border:0;margin:14px 0 20px}
+.pagefoot{position:absolute;bottom:12mm;left:24mm;right:24mm;display:flex;justify-content:space-between;
+  font-family:var(--sans);font-size:10px;letter-spacing:.06em;color:var(--faint);text-transform:uppercase;border-top:1px solid var(--line);padding-top:7px}
+.sheet.dark .pagefoot{color:#8ba0bd;border-color:#24405f}
+.lead{font-size:18px;line-height:1.6;color:#33455a}
+.small{font-size:13.5px;color:var(--muted)}
+.center{text-align:center}
+
+/* ---- cover ---- */
+.cover{background:radial-gradient(120% 90% at 80% -10%, #1e3c5e 0%, #102439 55%, #0b1a2b 100%);
+  display:flex;flex-direction:column;justify-content:space-between}
+.cover .brandrow{display:flex;justify-content:space-between;align-items:center;color:#a9c0dd;font-family:var(--sans);
+  font-size:12px;letter-spacing:.18em;text-transform:uppercase}
+.cover .logo{display:flex;align-items:center;gap:10px;font-weight:700;color:#fff;letter-spacing:.14em}
+.cover .logo .mark{width:34px;height:34px}
+.cover h1{color:#fff;font-size:52px;line-height:1.08;letter-spacing:-.02em;margin:0 0 10px;max-width:15ch}
+.cover .sub{font-family:var(--sans);font-size:18px;color:#cdd9e8;font-weight:400;max-width:44ch;line-height:1.5}
+.cover .kicker{font-family:var(--sans);font-size:12.5px;letter-spacing:.28em;text-transform:uppercase;color:var(--gold);margin-bottom:22px}
+.cover .meta{display:flex;gap:40px;color:#b9cade;font-family:var(--sans);font-size:13px;border-top:1px solid #26456a;padding-top:20px}
+.cover .meta b{display:block;color:#fff;font-family:var(--serif);font-size:15px;font-weight:700;margin-top:3px;letter-spacing:0}
+.cover svg.route{position:absolute;right:-40px;top:120px;width:520px;height:520px;opacity:.16}
+
+/* ---- confidential strip / TOC ---- */
+.conf{font-family:var(--sans);font-size:11px;letter-spacing:.1em;color:#8ba0bd}
+.toc-list{list-style:none;margin:8px 0 0;padding:0;column-count:1}
+.toc-list li{display:flex;align-items:baseline;gap:12px;padding:11px 0;border-bottom:1px solid var(--line);font-family:var(--sans)}
+.toc-list .num{font-family:var(--serif);font-weight:700;color:var(--gold);width:34px;font-size:17px}
+.toc-list .t{font-weight:600;color:var(--navy);font-size:16px}
+.toc-list .d{margin-left:auto;color:var(--faint);font-size:12px;letter-spacing:.1em}
+
+/* ---- chapter divider ---- */
+.divider{display:flex;flex-direction:column;justify-content:center}
+.divider .cn{font-family:var(--serif);font-size:150px;line-height:.8;color:#20406a;font-weight:700}
+.divider h1{font-size:46px;margin:6px 0 14px;max-width:16ch}
+.divider .sub{font-family:var(--sans);font-size:16.5px;color:#b8cae0;max-width:52ch;line-height:1.6}
+
+/* ---- content elements ---- */
+h2.sec{font-size:34px;line-height:1.1;color:var(--navy);max-width:20ch}
+h3.sub{font-size:22px;color:var(--navy);margin:26px 0 8px}
+h4.k{font-family:var(--sans);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--teal);font-weight:800;margin:0 0 6px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:26px}
+.three{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:20px 22px}
+.card.tint{background:var(--paper2)}
+.card h4{font-family:var(--serif);font-size:18px;color:var(--navy);margin:0 0 6px}
+.icard{background:#fff;border:1px solid var(--line);border-radius:12px;padding:18px}
+.icard .ic{width:30px;height:30px;color:var(--gold);margin-bottom:10px}
+.icard b{display:block;font-family:var(--serif);font-size:16.5px;color:var(--navy);margin-bottom:4px}
+.icard p{font-size:13.5px;color:var(--muted);margin:0}
+
+/* KPI band */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin:8px 0 4px}
+.kpi{background:var(--navy);color:#fff;border-radius:12px;padding:18px 16px;text-align:center}
+.kpi.gold{background:linear-gradient(160deg,#c9a740,#a9821f)}
+.kpi.teal{background:linear-gradient(160deg,#317a8c,#245663)}
+.kpi.green{background:linear-gradient(160deg,#357a5a,#255742)}
+.kpi .v{font-family:var(--serif);font-size:34px;font-weight:700;line-height:1}
+.kpi .l{font-family:var(--sans);font-size:11.5px;letter-spacing:.05em;color:#e7eef8;margin-top:7px;opacity:.92}
+
+/* lists */
+ul.check{list-style:none;padding:0;margin:10px 0}
+ul.check li{position:relative;padding-inline-start:28px;margin-bottom:10px;font-size:15px}
+ul.check li::before{content:"";position:absolute;inset-inline-start:0;top:8px;width:14px;height:14px;border-radius:4px;
+  background:var(--gold-soft);border:1px solid var(--gold)}
+ul.plain{margin:8px 0;padding-inline-start:20px} ul.plain li{margin-bottom:7px}
+
+/* quote / callout */
+.pull{border-inline-start:4px solid var(--gold);padding:6px 0 6px 20px;margin:22px 0;
+  font-family:var(--serif);font-size:24px;line-height:1.35;color:var(--navy);font-style:italic;max-width:32ch}
+.callout{background:var(--navy);color:#eaf0f8;border-radius:14px;padding:26px 28px;margin:20px 0}
+.callout h3{color:#fff;font-size:22px;margin-bottom:8px}
+.callout p{color:#cdd9e8;margin:0}
+
+/* tables */
+table{width:100%;border-collapse:collapse;font-size:14px;margin:12px 0 6px}
+th{font-family:var(--sans);text-align:left;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--teal);
+  font-weight:800;padding:10px 12px;border-bottom:2px solid var(--navy)}
+td{padding:11px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:nth-child(even) td{background:#fff8}
+td.n{font-variant-numeric:tabular-nums;font-weight:700;color:var(--navy)}
+.gain{color:var(--green);font-weight:700}
+
+/* hidden-cost infographic */
+.leak{display:grid;gap:9px;margin:14px 0}
+.leak .row{display:grid;grid-template-columns:180px 1fr 66px;align-items:center;gap:12px;font-size:13.5px}
+.leak .bar{height:16px;border-radius:8px;background:linear-gradient(90deg,#b85c4d,#c9a740)}
+.leak .cap{color:var(--muted)} .leak .amt{text-align:right;font-weight:700;color:var(--navy);font-variant-numeric:tabular-nums}
+
+/* before/after */
+.ba{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.ba .h{padding:12px 18px;font-family:var(--sans);font-weight:800;font-size:12px;letter-spacing:.12em;text-transform:uppercase}
+.ba .before .h{background:#efe4e0;color:var(--rose)}
+.ba .after .h{background:#e3efe8;color:var(--green)}
+.ba .before{border-inline-end:1px solid var(--line)}
+.ba ul{margin:0;padding:16px 18px 18px 34px;font-size:14px} .ba li{margin-bottom:9px}
+
+/* roadmap timeline */
+.timeline{position:relative;margin:22px 0 6px;padding-inline-start:8px}
+.timeline::before{content:"";position:absolute;inset-inline-start:15px;top:6px;bottom:6px;width:2px;background:var(--gold-soft)}
+.tstep{position:relative;padding-inline-start:44px;padding-bottom:20px}
+.tstep .dot{position:absolute;inset-inline-start:8px;top:2px;width:18px;height:18px;border-radius:50%;background:var(--gold);
+  border:3px solid var(--paper);box-shadow:0 0 0 1px var(--gold)}
+.tstep .ph{font-family:var(--sans);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--teal);font-weight:800}
+.tstep b{font-family:var(--serif);font-size:18px;color:var(--navy);display:block;margin:1px 0 4px}
+.tstep p{font-size:13.5px;color:var(--muted);margin:0}
+.tstep .wk{position:absolute;inset-inline-end:0;top:2px;font-size:11px;color:var(--faint);font-weight:700;letter-spacing:.06em}
+
+/* feature grid */
+.fgrid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:10px}
+.fcol h4{font-family:var(--sans);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);font-weight:800;margin:0 0 8px;border-bottom:1px solid var(--line);padding-bottom:6px}
+.fcol ul{list-style:none;margin:0;padding:0} .fcol li{font-size:13.5px;padding:5px 0;color:var(--ink);display:flex;gap:8px}
+.fcol li::before{content:"—";color:var(--gold)}
+
+.closing{background:radial-gradient(120% 90% at 20% 0%, #1e3c5e, #0d1f34 60%, #0a1626);display:flex;flex-direction:column;justify-content:center}
+.closing h1{font-size:44px;color:#fff;max-width:20ch;line-height:1.14}
+.closing .lead{color:#cdd9e8;font-size:19px;max-width:56ch}
+
+@media print{
+  body{background:#fff}
+  .sheet{margin:0;box-shadow:none;width:auto;min-height:auto;page-break-after:always}
+  @page{size:A4;margin:0}
+}
+@media(max-width:760px){
+  .sheet{width:auto;padding:22px 18px;min-height:0}
+  .two,.three,.kpis,.fgrid,.ba{grid-template-columns:1fr}
+  .cover h1{font-size:38px}.divider .cn{font-size:96px}.leak .row{grid-template-columns:110px 1fr 60px}
+}
+</style>
+</head>
+<body>
+
+<!-- ============================ COVER ============================ -->
+<section class="sheet dark cover">
+  <div class="brandrow">
+    <div class="logo"><svg class="mark" viewBox="0 0 40 40" fill="none"><rect x="6" y="12" width="28" height="16" rx="3" stroke="#bd9a3c" stroke-width="2"/><circle cx="13" cy="30" r="3" fill="#bd9a3c"/><circle cx="27" cy="30" r="3" fill="#bd9a3c"/><path d="M6 19h28" stroke="#bd9a3c" stroke-width="1.4"/></svg> ETMS</div>
+    <div>Confidential · Prepared for Executive Leadership</div>
+  </div>
+
+  <svg class="route" viewBox="0 0 400 400" fill="none">
+    <path d="M40 360 C120 320 90 220 200 200 S300 120 360 60" stroke="#bd9a3c" stroke-width="2.5" stroke-dasharray="2 10" stroke-linecap="round"/>
+    <circle cx="40" cy="360" r="7" fill="#bd9a3c"/><circle cx="200" cy="200" r="6" fill="#7fa8d6"/><circle cx="360" cy="60" r="9" fill="#fff"/>
+  </svg>
+
+  <div>
+    <div class="kicker">Digital Transformation Proposal</div>
+    <h1>Smart Workforce Transportation Platform</h1>
+    <p class="sub">Turning daily employee transportation from a hidden operational cost into a measured, predictable, and controllable business advantage.</p>
+  </div>
+
+  <div class="meta">
+    <div>Prepared for<b>Kout Food Group</b></div>
+    <div>Prepared by<b>House Lords for Custom Programs</b></div>
+    <div>Document<b>Executive Proposal · v1.0</b></div>
+  </div>
+</section>
+
+<!-- ============================ TOC ============================ -->
+<section class="sheet">
+  <div class="eyebrow">Contents</div>
+  <h2 class="sec" style="margin-bottom:6px">What this proposal covers</h2>
+  <hr class="rule">
+  <p class="small conf">This document is an operational transformation proposal — not a software quotation. It is structured around your business, your daily losses, and the outcomes we will deliver together.</p>
+  <ul class="toc-list">
+    <li><span class="num">01</span><span class="t">A Letter to Leadership</span><span class="d">The case for change</span></li>
+    <li><span class="num">02</span><span class="t">Executive Summary</span><span class="d">Why transportation is not "buses"</span></li>
+    <li><span class="num">03</span><span class="t">Your Current Challenges</span><span class="d">What we heard on the ground</span></li>
+    <li><span class="num">04</span><span class="t">The Hidden Cost</span><span class="d">What it leaks every single day</span></li>
+    <li><span class="num">05</span><span class="t">Our Vision</span><span class="d">Transportation, re-imagined</span></li>
+    <li><span class="num">06</span><span class="t">The Business Impact</span><span class="d">Outcomes before features</span></li>
+    <li><span class="num">07</span><span class="t">The Platform</span><span class="d">Employee · Driver · Command Center</span></li>
+    <li><span class="num">08</span><span class="t">Capabilities at a Glance</span><span class="d">The full operating system</span></li>
+    <li><span class="num">09</span><span class="t">Why This Is Different</span><span class="d">Our competitive edge</span></li>
+    <li><span class="num">10</span><span class="t">The Return on Investment</span><span class="d">A measurable business case</span></li>
+    <li><span class="num">11</span><span class="t">Implementation Roadmap</span><span class="d">From discovery to go-live</span></li>
+    <li><span class="num">12</span><span class="t">The Innovation Horizon</span><span class="d">Where we take you next</span></li>
+    <li><span class="num">13</span><span class="t">Why Partner With Us</span><span class="d">We solve operations</span></li>
+    <li><span class="num">14</span><span class="t">A Final Word</span><span class="d">The cost of standing still</span></li>
+    <li><span class="num">A</span><span class="t">Success Metrics &amp; KPI Framework</span><span class="d">Appendix</span></li>
+    <li><span class="num">B</span><span class="t">The First 90 Days</span><span class="d">Appendix</span></li>
+    <li><span class="num">C</span><span class="t">The ROI Worksheet</span><span class="d">Appendix</span></li>
+    <li><span class="num">D</span><span class="t">Security &amp; Data Protection</span><span class="d">Appendix — for IT</span></li>
+    <li><span class="num">E</span><span class="t">Governance, Support &amp; Partnership</span><span class="d">Appendix</span></li>
+    <li><span class="num">F</span><span class="t">Executive FAQ</span><span class="d">Appendix</span></li>
+  </ul>
+  <div class="pagefoot"><span>ETMS · Digital Transformation Proposal</span><span>Confidential</span></div>
+</section>
+
+<!-- ============================ 01 CEO LETTER ============================ -->
+<section class="sheet">
+  <div class="eyebrow">01 · A Letter to Leadership</div>
+  <h2 class="sec">Transportation is not moving people.<br>It is moving your business.</h2>
+  <hr class="rule">
+  <p class="lead">To the leadership team of Kout Food Group,</p>
+  <p>Every working day, before your first customer is served and before your first line runs, a quieter operation has already decided how your day will go: the movement of your people from where they sleep to where they work.</p>
+  <p>It rarely appears on a strategy slide. Yet it silently governs whether shifts start on time, whether lines are fully staffed, whether overtime is planned or panicked, and whether your managers spend the first hour of the day leading — or chasing a late bus on the phone.</p>
+  <p><strong>When you move an employee, you are not moving a person. You are moving productivity. You are moving operations. You are moving the customer experience that person is about to deliver.</strong></p>
+  <div class="pull">Every delayed employee is a delayed shift. Every empty seat is money already spent for value never received.</div>
+  <p>The losses are real, but they are invisible — spread across a dozen departments so thinly that no single manager owns them, and no single report reveals them:</p>
+  <ul class="check">
+    <li>Every <strong>delayed employee</strong> creates a hidden loss in output and shift readiness.</li>
+    <li>Every <strong>empty seat</strong> is fuel, a driver, and a vehicle paid for — and wasted.</li>
+    <li>Every <strong>manual phone call</strong> consumes management time that should be spent leading.</li>
+    <li>Every <strong>inaccurate attendance record</strong> becomes a payroll dispute and an erosion of trust.</li>
+    <li>Every <strong>routing mistake</strong> quietly burns fuel and hours you never planned to spend.</li>
+  </ul>
+  <p>These are not transportation problems. They are <em>business</em> problems that happen to arrive on a bus.</p>
+  <p>Our mission is simple, and it is not to sell you software. It is to <strong>eliminate these hidden operational losses</strong> — to make your transportation predictable, transparent, and measurable, and to give this critical operation the control it has always deserved.</p>
+  <p>We would be honored to earn the opportunity.</p>
+  <p style="margin-top:22px"><strong>House Lords for Custom Programs</strong><br><span class="small">Digital Transformation Partner</span></p>
+  <div class="pagefoot"><span>01 · A Letter to Leadership</span><span>Confidential</span></div>
+</section>
+
+<!-- ============================ 02 EXECUTIVE SUMMARY ============================ -->
+<section class="sheet">
+  <div class="eyebrow">02 · Executive Summary</div>
+  <h2 class="sec">Most companies think transportation is buses. It isn't.</h2>
+  <hr class="rule">
+  <p class="lead">Transportation is one of the few operations that touches almost every cost center in your business — and today, in most organizations, it is run on phone calls, spreadsheets, and memory.</p>
+  <p>Treated as a fleet of vehicles, it looks like a minor line item. Seen accurately, it is a daily lever that moves the numbers your leadership actually cares about:</p>
+  <div class="three" style="margin:18px 0">
+    <div class="icard"><b>People &amp; Time</b><p>Attendance, punctuality, productivity, and the overtime you pay to recover lost hours.</p></div>
+    <div class="icard"><b>Money</b><p>Payroll accuracy, fuel, maintenance, and the administrative labor spent firefighting.</p></div>
+    <div class="icard"><b>Experience</b><p>Employee satisfaction, driver accountability, and the operational reputation of your brand.</p></div>
+  </div>
+  <p>When transportation fails quietly, the failure re-appears loudly somewhere else — as a short-staffed line, an overtime spike, a payroll complaint, or a resignation. Because no one owns the whole chain, no one sees the whole cost.</p>
+  <div class="callout">
+    <h3>The opportunity</h3>
+    <p>By giving transportation a single, intelligent operating system, you convert an invisible cost into a managed asset — with real-time visibility, automated coordination, verified attendance, and analytics that finally connect the bus to the bottom line.</p>
+  </div>
+  <p style="margin-top:18px">This proposal presents that operating system, and — more importantly — the <strong>business outcomes</strong> it delivers. The numbers below are illustrative of the value at stake; they are calibrated precisely to your operation during Discovery.</p>
+  <div class="kpis" style="margin-top:16px">
+    <div class="kpi gold"><div class="v">−30%</div><div class="l">Coordination &amp; admin effort</div></div>
+    <div class="kpi teal"><div class="v">−15%</div><div class="l">Avoidable overtime</div></div>
+    <div class="kpi green"><div class="v">+12%</div><div class="l">On-time shift starts</div></div>
+    <div class="kpi"><div class="v">100%</div><div class="l">Attendance verified digitally</div></div>
+  </div>
+  <p class="small" style="margin-top:10px;color:var(--faint)">Illustrative targets. Actual baselines and gains are established jointly during Discovery.</p>
+  <div class="pagefoot"><span>02 · Executive Summary</span><span>Confidential</span></div>
+</section>
+
+<!-- ============================ 03 DIVIDER ============================ -->
+<section class="sheet dark divider">
+  <div class="cn">03</div>
+  <h1>Your Current Challenges</h1>
+  <p class="sub">Before we describe a solution, we want to show you that we have listened. The following reflects what operations, HR, and transportation teams tell us — again and again — across restaurant chains, retail networks, factories, and logistics operations.</p>
+  <div class="pagefoot" style="color:#8ba0bd"><span>03 · Current Challenges</span><span>Confidential</span></div>
+</section>
+
+<section class="sheet">
+  <div class="eyebrow">03 · What we heard on the ground</div>
+  <h2 class="sec">Five gaps that quietly run your transportation today</h2>
+  <hr class="rule">
+
+  <h3 class="sub">1 · No visibility</h3>
+  <ul class="plain">
+    <li>There is <strong>no real-time picture</strong> of where vehicles are or whether they are on schedule.</li>
+    <li>Employees don't know when their bus will arrive, so they wait — or they miss it.</li>
+    <li>When a bus is late, managers can't say <em>why</em>, only that it is.</li>
+  </ul>
+
+  <h3 class="sub">2 · Coordination by phone call</h3>
+  <ul class="plain">
+    <li>Drivers receive <strong>last-minute instructions by phone</strong>, with no digital record.</li>
+    <li>Routes are assigned from memory and habit, not from optimization.</li>
+    <li>Communication between HR, dispatch, drivers, and employees is fragmented and manual.</li>
+  </ul>
+
+  <h3 class="sub">3 · No accountability or record</h3>
+  <ul class="plain">
+    <li>Attendance is <strong>captured manually</strong> — or not at all — creating payroll disputes.</li>
+    <li>There is no driver-performance tracking and no way to prove who was collected, and when.</li>
+    <li>Incidents are reported verbally and forgotten; nothing is measured, so nothing improves.</li>
+  </ul>
+
+  <h3 class="sub">4 · No numbers to manage by</h3>
+  <ul class="plain">
+    <li>No utilization reports, no transportation KPIs, no seat management.</li>
+    <li>No maintenance planning — vehicles are serviced reactively, after they fail.</li>
+    <li>Payroll deductions tied to transport usage become a manual, contested, monthly headache.</li>
+  </ul>
+
+  <h3 class="sub">5 · A poor experience — and hidden cost everywhere</h3>
+  <ul class="plain">
+    <li>Employees start their day frustrated; HR spends hours each week resolving transport complaints.</li>
+    <li>There is no digital workflow, no transparency, and no single owner of the operation.</li>
+    <li>The result: <strong>hidden costs in every corner</strong>, and no dashboard that reveals them.</li>
+  </ul>
+  <div class="pagefoot"><span>03 · Current Challenges</span><span>Confidential</span></div>
+</section>
+
+<!-- ============================ 04 HIDDEN COST ============================ -->
+<section class="sheet">
+  <div class="eyebrow">04 · The Hidden Cost</div>
+  <h2 class="sec">It doesn't send you an invoice. It just leaks — every day.</h2>
+  <hr class="rule">
+  <p class="lead">The most expensive costs in transportation are the ones you never see billed. They hide inside other budgets, which is exactly why they are never fixed.</p>
+
+  <p>Consider a single ordinary morning across your sites, and where the value quietly escapes:</p>
+
+  <div class="leak">
+    <div class="row"><span class="cap">Delayed shift starts</span><div class="bar" style="width:92%"></div><span class="amt">High</span></div>
+    <div class="row"><span class="cap">Idle, waiting employees</span><div class="bar" style="width:80%"></div><span class="amt">High</span></div>
+    <div class="row"><span class="cap">Unplanned overtime</span><div class="bar" style="width:74%"></div><span class="amt">High</span></div>
+    <div class="row"><span class="cap">Fuel from poor routing</span><div class="bar" style="width:58%"></div><span class="amt">Medium</span></div>
+    <div class="row"><span class="cap">Empty / unused seats</span><div class="bar" style="width:55%"></div><span class="amt">Medium</span></div>
+    <div class="row"><span class="cap">Administrative firefighting</span><div class="bar" style="width:50%"></div><span class="amt">Medium</span></div>
+    <div class="row"><span class="cap">Payroll corrections &amp; disputes</span><div class="bar" style="width:44%"></div><span class="amt">Medium</span></div>
+    <div class="row"><span class="cap">Turnover from daily friction</span><div class="bar" style="width:66%"></div><span class="amt">High</span></div>
+  </div>
+  <p class="small" style="color:var(--faint)">Relative leakage by category — a qualitative map. Monetary values are modeled against your data in Section 10.</p>
+
+  <h3 class="sub">The chain reaction of a single late bus</h3>
+  <div class="ba" style="margin-top:8px">
+    <div class="before">
+      <div class="h">One delayed vehicle</div>
+      <ul>
+        <li>A shift starts short-staffed → output drops for the hour.</li>
+        <li>Present employees stand idle, paid, producing nothing.</li>
+        <li>A supervisor leaves the floor to make phone calls.</li>
+        <li>Overtime is authorized later to recover the lost output.</li>
+        <li>Attendance is logged "by hand," seeding a payroll dispute.</li>
+      </ul>
+    </div>
+    <div class="after">
+      <div class="h">Multiplied every day</div>
+      <ul>
+        <li>Across sites, shifts, and months, small losses compound.</li>
+        <li>None appears as a "transportation cost" in any budget.</li>
+        <li>Managers manage the symptom, never the cause.</li>
+        <li>The most damaging line — <strong>lost trust</strong> — never gets counted at all.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="pull" style="max-width:40ch">The problem was never the price of a bus. It was the absence of control over what the bus was costing you.</div>
+  <div class="pagefoot"><span>04 · The Hidden Cost</span><span>Confidential</span></div>
+</section>
+
+<!-- ============================ 05 VISION ============================ -->
+<section class="sheet dark divider">
+  <div class="cn">05</div>
+  <h1>Our Vision</h1>
+  <p class="sub">Transportation should not be something you react to each morning. It should be an operation you can predict, automate, measure, and scale — like every other part of a modern enterprise.</p>
+  <div class="pagefoot" style="color:#8ba0bd"><span>05 · Our Vision</span><span>Confidential</span></div>
+</section>
+
+<section class="sheet">
+  <div class="eyebrow">05 · Our Vision</div>
+  <h2 class="sec">Five principles for transportation that runs itself</h2>
+  <hr class="rule">
+  <div class="two" style="margin-top:14px">
+    <div class="card"><h4>Predictable</h4><p>Every employee knows when their ride arrives. Every manager knows when their people will. No surprises at the start of a shift.</p></div>
+    <div class="card"><h4>Automated</h4><p>Routes, assignments, notifications, and attendance flow through a system — not through a chain of phone calls and memory.</p></div>
+    <div class="card"><h4>Data-Driven</h4><p>Every trip generates evidence: utilization, punctuality, driver performance, cost per site. Decisions replace guesswork.</p></div>
+    <div class="card"><h4>Transparent</h4><p>One live picture of the whole operation, shared across HR, operations, and management. One version of the truth.</p></div>
+  </div>
+  <div class="card tint" style="margin-top:16px"><h4>Scalable</h4><p>Add a branch, a brand, a city, or a thousand employees without adding chaos. The operating model stays the same; only the map grows.</p></div>
+  <div class="pull" style="max-width:44ch">We are not proposing a tool you will operate. We are proposing an operation that will finally operate for you.</div>
+  <div class="pagefoot"><span>05 · Our Vision</span><span>Confidential</span></div>
+</section>
+
+<!-- ============================ 06 BUSINESS IMPACT ============================ -->
+<section class="sheet">
+  <div class="eyebrow">06 · The Business Impact</div>
+  <h2 class="sec">We lead with outcomes — not screens.</h2>
+  <hr class="rule">
+  <p class="lead">Before a single feature, here is what changes for your business when transportation becomes a managed system.</p>
+
+  <div class="kpis" style="grid-template-columns:repeat(4,1fr);margin:18px 0">
+    <div class="kpi"><div class="v">↓</div><div class="l">Lower operational cost</div></div>
+    <div class="kpi teal"><div class="v">↑</div><div class="l">Higher attendance &amp; punctuality</div></div>
+    <div class="kpi green"><div class="v">↓</div><div class="l">Lower avoidable overtime</div></div>
+    <div class="kpi gold"><div class="v">↑</div><div class="l">Higher employee satisfaction</div></div>
+  </div>
+
+  <table>
+    <thead><tr><th>Business Outcome</th><th>Today (manual)</th><th>With ETMS</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Visibility</strong></td><td>Phone calls &amp; guesswork</td><td class="gain">Real-time, live map &amp; status</td></tr>
+      <tr><td><strong>Coordination</strong></td><td>Last-minute, manual</td><td class="gain">Automated assignment &amp; alerts</td></tr>
+      <tr><td><strong>Attendance</strong></td><td>Handwritten, disputed</td><td class="gain">Digitally verified at boarding</td></tr>
+      <tr><td><strong>Overtime</strong></td><td>Reactive, unplanned</td><td class="gain">Prevented at the source</td></tr>
+      <tr><td><strong>Accountability</strong></td><td>Verbal, untracked</td><td class="gain">Measured, on the record</td></tr>
+      <tr><td><strong>Analytics</strong></td><td>None</td><td class="gain">KPIs, utilization, cost per site</td></tr>
+      <tr><td><strong>Employee experience</strong></td><td>Uncertainty &amp; waiting</td><td class="gain">Confidence &amp; control</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout" style="margin-top:16px">
+    <h3>Management control, finally</h3>
+    <p>For the first time, transportation becomes a dashboard you can lead from — with accurate analytics, digital accountability, and the real-time visibility to act before a problem becomes a cost.</p>
+  </div>
+  <div class="pagefoot"><span>06 · The Business Impact</span><span>Confidential</span></div>
+</section>
+
+<!-- ============================ 07 THE PLATFORM ============================ -->
+<section class="sheet dark divider">
+  <div class="cn">07</div>
+  <h1>The Platform</h1>
+  <p class="sub">One connected ecosystem, three experiences — each designed around the person using it and the outcome your business needs from them. Everything below is built to serve the impact you just read.</p>
+  <div class="pagefoot" style="color:#8ba0bd"><span>07 · The Platform</span><span>Confidential</span></div>
+</section>
+
+<!-- Employee App -->
+<section class="sheet">
+  <div class="eyebrow">07 · The Platform — Part 1 of 3</div>
+  <h2 class="sec">The Employee App</h2>
+  <p class="small" style="color:var(--teal);font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-top:6px">Certainty in the palm of every worker's hand</p>
+  <hr class="rule">
+  <h4 class="k">Business value</h4>
+  <p>An employee who knows exactly when their ride arrives is an employee who arrives on time, rested, and ready. Certainty removes the two most expensive words in transportation: <em>waiting</em> and <em>missing</em>.</p>
+
+  <h4 class="k" style="margin-top:20px">A day in the life</h4>
+  <div class="timeline" style="margin-top:10px">
+    <div class="tstep"><span class="dot"></span><span class="ph">Before the shift</span><b>Knows the plan</b><p>Sees the assigned vehicle, pickup point, and live arrival time — no phone call, no uncertainty.</p></div>
+    <div class="tstep"><span class="dot"></span><span class="ph">On the way</span><b>Signals intent</b><p>Taps "I'm on the way," and can raise a transportation request when plans change.</p></div>
+    <div class="tstep"><span class="dot"></span><span class="ph">At boarding</span><b>Boards in one scan</b><p>A QR scan confirms boarding instantly — verified attendance, zero paperwork.</p></div>
+    <div class="tstep"><span class="dot"></span><span class="ph">After the trip</span><b>Is heard</b><p>Receives arrival &amp; delay notifications, and can rate the trip or report a lost item.</p></div>
+  </div>
+  <h4 class="k" style="margin-top:16px">Benefits</h4>
+  <ul class="check">
+    <li>Ends the daily uncertainty that makes people late — and makes shifts start short.</li>
+    <li>Bilingual (Arabic / English) and effortless, so <strong>everyone</strong> actually uses it.</li>
+    <li>Turns each employee into a reliable, verified data point — not a phone call to chase.</li>
+  </ul>
+  <div class="pagefoot"><span>07 · The Platform — Employee App</span><span>Confidential</span></div>
+</section>
+
+<!-- Driver App -->
+<section class="sheet">
+  <div class="eyebrow">07 · The Platform — Part 2 of 3</div>
+  <h2 class="sec">The Driver App</h2>
+  <p class="small" style="color:var(--teal);font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-top:6px">Every driver, guided and accountable</p>
+  <hr class="rule">
+  <h4 class="k">Business value</h4>
+  <p>The driver stops being an unpredictable variable reached by phone, and becomes a guided, accountable node in a live operation — following an optimized route, confirming every pickup, and leaving a clean record behind.</p>
+
+  <h4 class="k" style="margin-top:20px">A day in the life</h4>
+  <div class="timeline" style="margin-top:10px">
+    <div class="tstep"><span class="dot"></span><span class="ph">Start of day</span><b>Receives the route</b><p>Opens the app to today's assigned trip, passenger manifest, and turn-by-turn navigation — no phone calls needed.</p></div>
+    <div class="tstep"><span class="dot"></span><span class="ph">At each stop</span><b>Confirms &amp; waits smart</b><p>Marks arrival, boards passengers by QR, and follows a clear, admin-set waiting timer — no guesswork, no arguments.</p></div>
+    <div class="tstep"><span class="dot"></span><span class="ph">On the road</span><b>Stays visible</b><p>Live GPS keeps dispatch informed; the driver can report an incident or request assistance in one tap.</p></div>
+    <div class="tstep"><span class="dot"></span><span class="ph">On arrival</span><b>Closes the loop</b><p>Confirms drop-off by QR — completing a verified, end-to-end record of the trip.</p></div>
+  </div>
+  <h4 class="k" style="margin-top:16px">Benefits</h4>
+  <ul class="check">
+    <li>Replaces improvised phone coordination with a clear, digital workflow.</li>
+    <li>Creates driver-performance data — punctuality, completion, incidents — for fair accountability.</li>
+    <li>Works with intermittent connectivity, so the field never stops when the signal does.</li>
+  </ul>
+  <div class="pagefoot"><span>07 · The Platform — Driver App</span><span>Confidential</span></div>
+</section>
+
+<!-- Admin -->
+<section class="sheet">
+  <div class="eyebrow">07 · The Platform — Part 3 of 3</div>
+  <h2 class="sec">The Command Center</h2>
+  <p class="small" style="color:var(--teal);font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-top:6px">The admin dashboard — your operation on one screen</p>
+  <hr class="rule">
+  <h4 class="k">Business value</h4>
+  <p>This is where transportation stops being a black box. Operations, HR, and management see the entire network live, act in real time, and — for the first time — manage the operation with numbers instead of anecdotes.</p>
+
+  <h4 class="k" style="margin-top:20px">The daily workflow</h4>
+  <div class="two" style="margin-top:8px">
+    <div class="card"><h4>See everything</h4><p>A live fleet map, trip status, boarding progress, delays, and incidents — the whole operation at a glance.</p></div>
+    <div class="card"><h4>Control everything</h4><p>Assign routes and vehicles, manage seats and requests, set waiting policies, verify drivers, and dispatch in a click.</p></div>
+    <div class="card"><h4>Organize everything</h4><p>Branches, accommodations, vehicles, drivers, and employees — structured, coded, and multi-company from day one.</p></div>
+    <div class="card"><h4>Prove everything</h4><p>Verified attendance flows straight into transport-usage records — ready for HR and payroll, dispute-free.</p></div>
+  </div>
+  <h4 class="k" style="margin-top:16px">Benefits</h4>
+  <ul class="check">
+    <li>One source of truth shared across departments — the end of "which spreadsheet is right?"</li>
+    <li>Transportation analytics and exportable reports (Excel / PDF) that turn activity into insight.</li>
+    <li>Role-based access and full multi-company control, so scale never means losing the reins.</li>
+  </ul>
+  <div class="pagefoot"><span>07 · The Platform — Command Center</span><span>Confidential</span></div>
+</section>
+
+<!-- ============================ 08 FEATURES ============================ -->
+<section class="sheet">
+  <div class="eyebrow">08 · Capabilities at a Glance</div>
+  <h2 class="sec">A complete operating system for workforce transportation</h2>
+  <hr class="rule">
+  <p class="lead">Every capability below exists to serve one of the outcomes in Section 6 — not for its own sake. Together, they form a single, coherent operation.</p>
+
+  <div class="fgrid">
+    <div class="fcol"><h4>Visibility &amp; Communication</h4><ul>
+      <li>Live GPS tracking</li><li>Arrival notifications</li><li>Delay notifications</li><li>Push notifications</li><li>Driver navigation</li><li>Incident reporting</li>
+    </ul></div>
+    <div class="fcol"><h4>Boarding &amp; Attendance</h4><ul>
+      <li>QR boarding</li><li>QR drop-off</li><li>Attendance verification</li><li>Seat reservation &amp; management</li><li>Employee transport requests</li><li>Trip ratings &amp; lost-and-found</li>
+    </ul></div>
+    <div class="fcol"><h4>Fleet &amp; Operations</h4><ul>
+      <li>Dynamic route assignment</li><li>Vehicle management</li><li>Maintenance alerts</li><li>Driver performance</li><li>Fleet dashboard</li><li>Branch &amp; accommodation management</li>
+    </ul></div>
+  </div>
+  <div class="fgrid" style="margin-top:14px">
+    <div class="fcol"><h4>Intelligence &amp; Reporting</h4><ul>
+      <li>Transportation analytics</li><li>Operational KPIs</li><li>Utilization reporting</li><li>Reports &amp; dashboards</li><li>Export to Excel</li><li>Export to PDF</li>
+    </ul></div>
+    <div class="fcol"><h4>Enterprise Control</h4><ul>
+      <li>Multi-company architecture</li><li>Role-based permissions</li><li>Arabic / English</li><li>White-label branding</li><li>Verified drivers &amp; audit trail</li><li>Feature control per company</li>
+    </ul></div>
+    <div class="fcol"><h4>Enterprise Foundation</h4><ul>
+      <li>Cloud SaaS delivery</li><li>Secure PostgreSQL data</li><li>Native Flutter apps</li><li>Offline support</li><li>Bank-grade tenant isolation</li><li>Single sign-on ready</li>
+    </ul></div>
+  </div>
+  <p class="small" style="margin-top:14px;color:var(--faint)">The foundation column is included for your IT and security teams. The rest of this document deliberately stays where value is created — in your operation.</p>
+  <div class="pagefoot"><span>08 · Capabilities</span><span>Confidential</span></div>
+</section>
+
+<!-- ============================ 09 WHY DIFFERENT ============================ -->
+<section class="sheet">
+  <div class="eyebrow">09 · Why This Is Different</div>
+  <h2 class="sec">Not another tracking app. A purpose-built operation.</h2>
+  <hr class="rule">
+  <div class="two" style="margin-top:14px">
+    <div class="card"><h4>Built for your model</h4><p>Designed specifically for moving a workforce between <strong>accommodations and branches</strong> — not a generic ride app forced to fit. It speaks the language of shifts, sites, and staff.</p></div>
+    <div class="card"><h4>Outcome-first, not feature-first</h4><p>Every capability maps to a business result — attendance, overtime, cost, experience. We measure success in <em>your</em> numbers, not in screens shipped.</p></div>
+    <div class="card"><h4>Enterprise from day one</h4><p>Multi-company, role-based, bilingual, white-label, and securely isolated per organization — the architecture large enterprises require, already built in.</p></div>
+    <div class="card"><h4>Attendance that survives payroll</h4><p>Boarding is verified and flows into transport-usage records that HR and finance can trust — ending the monthly dispute, not just tracking a bus.</p></div>
+    <div class="card"><h4>Offline-first for the real world</h4><p>The field doesn't have perfect signal. The apps keep working and reconcile automatically — because an operation that stops when the network does is not an operation.</p></div>
+    <div class="card"><h4>A partner, not a vendor</h4><p>We configure to your reality, pilot on your ground, and stay for the long term — treating your operation as the product, and the software as the means.</p></div>
+  </div>
+  <div class="pagefoot"><span>09 · Why This Is Different</span><span>Confidential</span></div>
+</section>
+
+<!-- ============================ 10 ROI ============================ -->
+<section class="sheet">
+  <div class="eyebrow">10 · The Return on Investment</div>
+  <h2 class="sec">A business case measured in your currency, not ours.</h2>
+  <hr class="rule">
+  <p class="lead">This is where a transportation problem becomes a financial decision. The model below is illustrative; during Discovery we replace every assumption with your real baseline, and agree the targets together.</p>
+
+  <h4 class="k" style="margin-top:16px">Where the savings come from</h4>
+  <table>
+    <thead><tr><th>Value Lever</th><th>Mechanism</th><th>Illustrative Annual Impact</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Reduced overtime</strong></td><td>On-time shift starts remove recovery hours</td><td class="n">−10% to −20%</td></tr>
+      <tr><td><strong>Recovered productivity</strong></td><td>Fewer idle, waiting employees per shift</td><td class="n">Hundreds of hours / month</td></tr>
+      <tr><td><strong>Administrative efficiency</strong></td><td>Automation replaces phone coordination</td><td class="n">−25% to −35% effort</td></tr>
+      <tr><td><strong>Fuel optimization</strong></td><td>Better routing &amp; higher seat utilization</td><td class="n">−8% to −15%</td></tr>
+      <tr><td><strong>Payroll accuracy</strong></td><td>Verified attendance ends disputes</td><td class="n">Disputes → near zero</td></tr>
+      <tr><td><strong>Retention</strong></td><td>Less daily friction improves satisfaction</td><td class="n">Lower avoidable turnover</td></tr>
+    </tbody>
+  </table>
+
+  <div class="two" style="margin-top:18px;align-items:center">
+    <div>
+      <h4 class="k">The executive takeaway</h4>
+      <p>The platform is not a cost. It is the instrument that <strong>recovers</strong> costs you are already paying — invisibly — every single day. For most operations of your scale, the recovered overtime and administrative time alone are designed to <strong>outweigh the investment well within the first year</strong>.</p>
+      <p class="small" style="color:var(--faint)">A precise, defensible ROI model — with your figures — is delivered at the end of the Discovery phase.</p>
+    </div>
+    <div class="kpis" style="grid-template-columns:1fr 1fr">
+      <div class="kpi gold"><div class="v">&lt; 12</div><div class="l">Months to payback (target)</div></div>
+      <div class="kpi teal"><div class="v">1 : N</div><div class="l">Every $1 recovers multiples</div></div>
+      <div class="kpi green"><div class="v">Year&nbsp;1</div><div class="l">Net-positive business case</div></div>
+      <div class="kpi"><div class="v">100%</div><div class="l">Cost transparency</div></div>
+    </div>
+  </div>
+  <div class="pagefoot"><span>10 · Return on Investment</span><span>Confidential</span></div>
+</section>
+
+<!-- ============================ 11 ROADMAP ============================ -->
+<section class="sheet dark divider">
+  <div class="cn">11</div>
+  <h1>Implementation Roadmap</h1>
+  <p class="sub">A disciplined, low-risk path from today's manual process to a fully digital transportation operation — with a pilot before commitment and a partner beside you at every step.</p>
+  <div class="pagefoot" style="color:#8ba0bd"><span>11 · Implementation Roadmap</span><span>Confidential</span></div>
+</section>
+
+<section class="sheet">
+  <div class="eyebrow">11 · From discovery to go-live</div>
+  <h2 class="sec">Seven steps. Zero disruption.</h2>
+  <hr class="rule">
+  <div class="timeline" style="margin-top:16px">
+    <div class="tstep"><span class="dot"></span><span class="wk">Weeks 1–2</span><span class="ph">Phase 01</span><b>Discovery</b><p>We study your routes, sites, accommodations, shifts, and pains — and establish the baseline the business case is measured against.</p></div>
+    <div class="tstep"><span class="dot"></span><span class="wk">Weeks 2–3</span><span class="ph">Phase 02</span><b>Configuration</b><p>Your branches, vehicles, drivers, roles, and policies are set up in the platform — mirroring how you actually operate.</p></div>
+    <div class="tstep"><span class="dot"></span><span class="wk">Weeks 3–4</span><span class="ph">Phase 03</span><b>Customization</b><p>Branding, language, waiting rules, and workflows are tailored to your organization and its standards.</p></div>
+    <div class="tstep"><span class="dot"></span><span class="wk">Weeks 4–6</span><span class="ph">Phase 04</span><b>Pilot</b><p>We go live on a single route or site — proving the outcomes on real ground, with real people, before any scale-up.</p></div>
+    <div class="tstep"><span class="dot"></span><span class="wk">Week 6</span><span class="ph">Phase 05</span><b>Training</b><p>Employees, drivers, and administrators are onboarded with role-specific, bilingual training and simple guides.</p></div>
+    <div class="tstep"><span class="dot"></span><span class="wk">Weeks 7–8</span><span class="ph">Phase 06</span><b>Go-Live</b><p>A confident, staged rollout across sites — the manual process retired only once the digital one has proven itself.</p></div>
+    <div class="tstep"><span class="dot"></span><span class="wk">Ongoing</span><span class="ph">Phase 07</span><b>Support &amp; Optimization</b><p>A dedicated partnership with continuous improvement, quarterly reviews, and a roadmap that grows with you.</p></div>
+  </div>
+  <p class="small" style="color:var(--faint)">Indicative timeline for an initial deployment; refined to your scope in Discovery.</p>
+  <div class="pagefoot"><span>11 · Implementation Roadmap</span><span>Confidential</span></div>
+</section>
+
+<!-- ============================ 12 FUTURE ============================ -->
+<section class="sheet">
+  <div class="eyebrow">12 · The Innovation Horizon</div>
+  <h2 class="sec">You are not buying software. You are boarding a roadmap.</h2>
+  <hr class="rule">
+  <p class="lead">The platform you adopt today is the foundation for capabilities that turn your transportation data into a lasting competitive advantage.</p>
+  <div class="three" style="margin-top:16px">
+    <div class="icard"><b>AI Route Optimization</b><p>Continuously learning routes that cut distance, time, and fuel as your network grows.</p></div>
+    <div class="icard"><b>Predictive Maintenance</b><p>Anticipate vehicle issues before they cause a missed shift — planned, not reactive.</p></div>
+    <div class="icard"><b>Demand Forecasting</b><p>Predict transport demand by site, shift, and season — and staff the fleet to match.</p></div>
+    <div class="icard"><b>Smart Scheduling</b><p>Automatically build the most efficient daily plan from demand, capacity, and constraints.</p></div>
+    <div class="icard"><b>Fuel Analytics</b><p>Pinpoint waste and benchmark efficiency across routes, vehicles, and drivers.</p></div>
+    <div class="icard"><b>Machine Learning &amp; BI</b><p>Executive BI dashboards that surface the patterns and savings hidden in your operation.</p></div>
+  </div>
+  <div class="callout" style="margin-top:18px"><h3>The compounding advantage</h3><p>Every trip your fleet runs makes the system smarter — and your operation cheaper, faster, and more predictable than a competitor still running on phone calls.</p></div>
+  <div class="pagefoot"><span>12 · The Innovation Horizon</span><span>Confidential</span></div>
+</section>
+
+<!-- ============================ 13 WHY US ============================ -->
+<section class="sheet">
+  <div class="eyebrow">13 · Why Partner With Us</div>
+  <h2 class="sec">We don't build apps. We solve operations.</h2>
+  <hr class="rule">
+  <p class="lead">Anyone can deliver software. Few can take accountability for an <em>outcome</em>. That distinction is our entire philosophy.</p>
+  <div class="two" style="margin-top:14px">
+    <div class="card"><h4>We solve operations</h4><p>We start from your losses and work backward to the technology — never the other way around. The measure of success is your numbers moving.</p></div>
+    <div class="card"><h4>We build ecosystems</h4><p>Employee, driver, and command center are one connected system — not three disconnected apps stitched together after the fact.</p></div>
+    <div class="card"><h4>We become partners</h4><p>Discovery, pilot, training, and continuous optimization mean we stay long after go-live — invested in your results, not just your signature.</p></div>
+    <div class="card"><h4>We carry the risk with you</h4><p>A pilot proves the value on your ground before you scale. You commit to results you have already seen — not to a promise.</p></div>
+  </div>
+  <div class="pull" style="max-width:46ch">Our product is not the platform. Our product is a transportation operation that finally works — and the platform is how we deliver it.</div>
+  <div class="pagefoot"><span>13 · Why Partner With Us</span><span>Confidential</span></div>
+</section>
+
+<!-- ============================ APPENDIX DIVIDER ============================ -->
+<section class="sheet dark divider">
+  <div class="cn" style="font-size:120px">Appendix</div>
+  <h1>The Supporting Detail</h1>
+  <p class="sub">For the teams who will evaluate, govern, and operate the platform — the metrics we manage by, the numbers behind the business case, the security your IT team will ask about, and the partnership model that stands behind it all.</p>
+  <div class="pagefoot" style="color:#8ba0bd"><span>Appendices</span><span>Confidential</span></div>
+</section>
+
+<!-- Appendix A — KPI framework -->
+<section class="sheet">
+  <div class="eyebrow">Appendix A · Success Metrics</div>
+  <h2 class="sec">The KPI framework we manage the operation by</h2>
+  <hr class="rule">
+  <p class="lead">We don't ask you to take transformation on faith. From day one, the operation is measured against a clear, shared scorecard — with baselines set in Discovery and targets agreed together.</p>
+  <table>
+    <thead><tr><th>Metric</th><th>What it tells you</th><th>Baseline</th><th>Target</th></tr></thead>
+    <tbody>
+      <tr><td><strong>On-time shift starts</strong></td><td>Whether people arrive ready to work</td><td class="n">[ set in Discovery ]</td><td class="gain">+10–15%</td></tr>
+      <tr><td><strong>Attendance verified digitally</strong></td><td>Payroll accuracy &amp; dispute risk</td><td class="n">Manual</td><td class="gain">100%</td></tr>
+      <tr><td><strong>Average pickup wait time</strong></td><td>Employee experience &amp; punctuality</td><td class="n">[ baseline ]</td><td class="gain">−30–50%</td></tr>
+      <tr><td><strong>No-show rate</strong></td><td>Planning accuracy &amp; wasted trips</td><td class="n">Unknown</td><td class="gain">Measured &amp; falling</td></tr>
+      <tr><td><strong>Seat utilization</strong></td><td>Money spent per employee moved</td><td class="n">[ baseline ]</td><td class="gain">+10–20%</td></tr>
+      <tr><td><strong>Avoidable overtime hours</strong></td><td>Direct, recoverable cost</td><td class="n">[ baseline ]</td><td class="gain">−10–20%</td></tr>
+      <tr><td><strong>Admin hours on transport</strong></td><td>Management time reclaimed</td><td class="n">[ baseline ]</td><td class="gain">−25–35%</td></tr>
+      <tr><td><strong>Employee satisfaction (transport)</strong></td><td>Retention &amp; daily morale</td><td class="n">[ survey ]</td><td class="gain">Rising trend</td></tr>
+    </tbody>
+  </table>
+  <p class="small" style="color:var(--faint)">Every metric is visible on the Command Center dashboard and exportable to Excel / PDF for leadership review.</p>
+  <div class="pagefoot"><span>Appendix A · Success Metrics</span><span>Confidential</span></div>
+</section>
+
+<!-- Appendix B — First 90 days -->
+<section class="sheet">
+  <div class="eyebrow">Appendix B · The First 90 Days</div>
+  <h2 class="sec">What transformation looks like — one quarter in</h2>
+  <hr class="rule">
+  <p class="lead">An illustrative view of the change your teams will feel in the first three months. It is a scenario, not a guarantee — but it is the trajectory the platform is built to deliver.</p>
+  <div class="timeline" style="margin-top:16px">
+    <div class="tstep"><span class="dot"></span><span class="wk">Days 1–30</span><span class="ph">Visibility arrives</span><b>The phone calls stop</b><p>Dispatch and HR see the live fleet for the first time. Drivers follow the app, not last-minute calls. Employees stop guessing when their ride will come. The daily 7 a.m. scramble simply ends.</p></div>
+    <div class="tstep"><span class="dot"></span><span class="wk">Days 30–60</span><span class="ph">Accountability builds</span><b>The numbers appear</b><p>Verified boarding replaces handwritten sheets; the first clean attendance data reaches payroll. Punctuality, No-Shows, and utilization become visible — and the first inefficiencies are corrected on the spot.</p></div>
+    <div class="tstep"><span class="dot"></span><span class="wk">Days 60–90</span><span class="ph">Savings compound</span><b>The business case proves itself</b><p>Overtime tied to late starts declines. Payroll disputes fall toward zero. Managers spend their mornings leading, not chasing. The first quarterly review turns anecdotes into a measured, defensible return.</p></div>
+  </div>
+  <div class="pull" style="max-width:44ch">By the end of the first quarter, transportation stops being the operation you worry about — and becomes the one you point to.</div>
+  <div class="pagefoot"><span>Appendix B · The First 90 Days</span><span>Confidential</span></div>
+</section>
+
+<!-- Appendix C — ROI worksheet -->
+<section class="sheet">
+  <div class="eyebrow">Appendix C · The ROI Worksheet</div>
+  <h2 class="sec">Your business case, on one page</h2>
+  <hr class="rule">
+  <p class="lead">A transparent model. During Discovery we populate the inputs with your real figures and agree the savings assumptions — turning this worksheet into a signed, defensible return.</p>
+  <table>
+    <thead><tr><th>Input (your figures)</th><th>Value</th><th>Savings lever</th><th>Modeled effect</th></tr></thead>
+    <tbody>
+      <tr><td>Employees transported / month</td><td class="n">[ ____ ]</td><td>Utilization &amp; routing</td><td class="gain">−8–15% fuel</td></tr>
+      <tr><td>Avg. avoidable overtime / month</td><td class="n">[ ____ ]</td><td>On-time shift starts</td><td class="gain">−10–20%</td></tr>
+      <tr><td>Admin hours on transport / week</td><td class="n">[ ____ ]</td><td>Automation vs. phone calls</td><td class="gain">−25–35%</td></tr>
+      <tr><td>Monthly fuel spend</td><td class="n">[ ____ ]</td><td>Optimized routing &amp; seats</td><td class="gain">−8–15%</td></tr>
+      <tr><td>Payroll disputes / month</td><td class="n">[ ____ ]</td><td>Verified attendance</td><td class="gain">→ near zero</td></tr>
+      <tr><td>Avg. monthly avoidable turnover</td><td class="n">[ ____ ]</td><td>Reduced daily friction</td><td class="gain">Lower</td></tr>
+    </tbody>
+  </table>
+  <div class="two" style="margin-top:16px;align-items:center">
+    <div>
+      <h4 class="k">How we compute the return</h4>
+      <p class="small">Total modeled monthly saving = recovered overtime + reclaimed admin cost + fuel reduction + dispute/rework cost avoided + retention benefit. Payback = platform cost ÷ net monthly saving.</p>
+      <p class="small" style="color:var(--faint)">All figures illustrative until calibrated with your data. We commit to a conservative, defensible model — not an optimistic one.</p>
+    </div>
+    <div class="kpis" style="grid-template-columns:1fr 1fr">
+      <div class="kpi gold"><div class="v">&lt; 12</div><div class="l">Target months to payback</div></div>
+      <div class="kpi green"><div class="v">Yr 1</div><div class="l">Net-positive target</div></div>
+      <div class="kpi teal"><div class="v">100%</div><div class="l">Transparent inputs</div></div>
+      <div class="kpi"><div class="v">Q1</div><div class="l">First measured review</div></div>
+    </div>
+  </div>
+  <div class="pagefoot"><span>Appendix C · ROI Worksheet</span><span>Confidential</span></div>
+</section>
+
+<!-- Appendix D — Security -->
+<section class="sheet">
+  <div class="eyebrow">Appendix D · Security &amp; Data Protection</div>
+  <h2 class="sec">Enterprise-grade by design — for your IT team</h2>
+  <hr class="rule">
+  <p class="lead">Transportation data is workforce data. The platform is engineered so that security is not a feature added later, but the foundation everything else stands on.</p>
+  <div class="two" style="margin-top:14px">
+    <div class="card"><h4>True multi-tenant isolation</h4><p>Every company's data is separated at the database level by enforced Row-Level Security — one organization can never read another's, even in the event of an application error.</p></div>
+    <div class="card"><h4>Least-privilege access</h4><p>The application connects with a restricted, non-privileged database role; the cross-company administration surface is a separate, hardened layer.</p></div>
+    <div class="card"><h4>Strong authentication</h4><p>Modern password hashing, multi-factor authentication (MFA) for sensitive actions, and rotating, single-use session tokens.</p></div>
+    <div class="card"><h4>Enterprise single sign-on</h4><p>Federate login with your identity provider via <strong>OpenID Connect</strong> or <strong>SAML 2.0</strong> — your existing security policies extend to the platform.</p></div>
+    <div class="card"><h4>Encryption of sensitive data</h4><p>Personal data such as home/pickup addresses is encrypted at the field level with rotating keys — protected even from direct database access.</p></div>
+    <div class="card"><h4>Roles, scopes &amp; audit</h4><p>Granular role-based permissions, branch-level scoping, and an immutable audit trail of who did what, when — across the whole operation.</p></div>
+  </div>
+  <div class="callout" style="margin-top:16px"><h3>Built for the real world</h3><p>Bilingual (Arabic / English), white-label, multi-company, cloud-delivered on a proven PostgreSQL foundation — with offline-capable apps that keep the field running when connectivity does not.</p></div>
+  <div class="pagefoot"><span>Appendix D · Security &amp; Data Protection</span><span>Confidential</span></div>
+</section>
+
+<!-- Appendix E — Governance -->
+<section class="sheet">
+  <div class="eyebrow">Appendix E · Governance &amp; Partnership</div>
+  <h2 class="sec">A partnership designed to last</h2>
+  <hr class="rule">
+  <p class="lead">Go-live is the start of the relationship, not the end of the project. Our engagement model is built for the long term.</p>
+  <div class="three" style="margin:14px 0">
+    <div class="icard"><b>Dedicated success owner</b><p>A single point of accountability for your operation's outcomes — not a ticket queue.</p></div>
+    <div class="icard"><b>Quarterly business reviews</b><p>We return to the KPI scorecard every quarter and drive the next round of improvement.</p></div>
+    <div class="icard"><b>Continuous optimization</b><p>Routes, policies, and configuration are tuned as your network and demand evolve.</p></div>
+  </div>
+  <h4 class="k">Support &amp; service levels</h4>
+  <table>
+    <thead><tr><th>Element</th><th>Standard</th><th>Premium</th></tr></thead>
+    <tbody>
+      <tr><td>Support hours</td><td>Business hours</td><td class="gain">Extended / priority</td></tr>
+      <tr><td>Response commitment</td><td>[ agreed SLA ]</td><td class="gain">[ priority SLA ]</td></tr>
+      <tr><td>Success reviews</td><td>Quarterly</td><td class="gain">Monthly</td></tr>
+      <tr><td>Onboarding &amp; training</td><td>Included</td><td class="gain">Included + refreshers</td></tr>
+      <tr><td>Roadmap influence</td><td>Standard</td><td class="gain">Prioritized requests</td></tr>
+    </tbody>
+  </table>
+  <p class="small" style="color:var(--faint)">Service levels are finalized with your team as part of the agreement.</p>
+  <div class="pagefoot"><span>Appendix E · Governance &amp; Partnership</span><span>Confidential</span></div>
+</section>
+
+<!-- Appendix F — FAQ -->
+<section class="sheet">
+  <div class="eyebrow">Appendix F · Executive FAQ</div>
+  <h2 class="sec">The questions leadership asks first</h2>
+  <hr class="rule">
+  <div class="two" style="margin-top:14px">
+    <div class="card"><h4>How quickly can we go live?</h4><p>A focused pilot on one route or site typically runs within weeks. We prove value there before scaling — you never commit blind.</p></div>
+    <div class="card"><h4>Do we need to change our vehicles or drivers?</h4><p>No. The platform works with your existing fleet and drivers. It adds intelligence and accountability to what you already have.</p></div>
+    <div class="card"><h4>What about drivers or staff with basic phones?</h4><p>The apps are lightweight and offline-capable, and administrators can manage on behalf of anyone. No one is left out of the workflow.</p></div>
+    <div class="card"><h4>How does it fit HR &amp; payroll?</h4><p>Verified boarding flows into transport-usage records structured for HR and payroll — ending manual reconciliation and disputes.</p></div>
+    <div class="card"><h4>Is our data secure and private?</h4><p>Yes — enforced tenant isolation, MFA, SSO, field-level encryption, and full audit trails. See Appendix D for your IT team.</p></div>
+    <div class="card"><h4>What if connectivity is poor in the field?</h4><p>The apps keep working offline and reconcile automatically once back online. The operation never stops when the signal does.</p></div>
+    <div class="card"><h4>Can we start small?</h4><p>Absolutely — one brand, one site, one route. The multi-company architecture then scales with you, without re-platforming.</p></div>
+    <div class="card"><h4>Arabic and English?</h4><p>Both, natively, across every app — so every employee and driver actually adopts it.</p></div>
+  </div>
+  <div class="pagefoot"><span>Appendix F · Executive FAQ</span><span>Confidential</span></div>
+</section>
+
+<!-- ============================ 14 CLOSING ============================ -->
+<section class="sheet dark closing">
+  <div class="eyebrow">14 · A Final Word</div>
+  <h1>The most expensive option on the table is to change nothing.</h1>
+  <p class="lead" style="margin-top:16px">Every morning the current process continues, the same losses repeat — the late shift, the idle hour, the unplanned overtime, the disputed timesheet, the frustrated employee. They will not appear on an invoice. They will simply keep happening, quietly, at scale.</p>
+  <p class="lead">The question is no longer whether transportation is costing you more than it should. It is whether you will keep paying for a problem you can no longer see — or finally take control of it.</p>
+  <p class="lead" style="color:#fff;font-family:var(--serif);font-style:italic;font-size:23px;line-height:1.4;margin-top:22px">Let us turn your transportation from a daily source of loss into a daily source of advantage.</p>
+  <div class="meta" style="display:flex;gap:40px;color:#b9cade;font-family:var(--sans);font-size:13px;border-top:1px solid #26456a;padding-top:20px;margin-top:26px">
+    <div>Next step<b style="display:block;color:#fff;font-family:var(--serif);font-size:15px;margin-top:3px">Book a 45-minute Discovery session</b></div>
+    <div>Prepared for<b style="display:block;color:#fff;font-family:var(--serif);font-size:15px;margin-top:3px">Kout Food Group</b></div>
+    <div>Prepared by<b style="display:block;color:#fff;font-family:var(--serif);font-size:15px;margin-top:3px">House Lords for Custom Programs</b></div>
+  </div>
+</section>
+
+</body>
+</html>

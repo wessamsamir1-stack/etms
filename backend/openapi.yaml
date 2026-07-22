@@ -1,0 +1,224 @@
+openapi: 3.1.0
+info:
+  title: ETMS API
+  version: "1.0.0"
+  description: >
+    Employee Transportation Management System REST API. Human-readable contract
+    in docs/etms/06-api-spec.md; this file covers the endpoints implemented in the
+    backend service. All /v1 routes require a Bearer JWT carrying tenant + permissions.
+servers:
+  - url: https://api.{region}.etms.app/v1
+    variables: { region: { default: dev } }
+  - url: http://localhost:8080
+components:
+  securitySchemes:
+    bearerAuth: { type: http, scheme: bearer, bearerFormat: JWT }
+  schemas:
+    Problem:
+      type: object
+      properties:
+        type: { type: string }
+        title: { type: string }
+        status: { type: integer }
+        code: { type: string }
+        request_id: { type: string }
+    LatLng:
+      type: object
+      required: [lat, lng]
+      properties: { lat: { type: number }, lng: { type: number } }
+security:
+  - bearerAuth: []
+paths:
+  /health:
+    get:
+      security: []
+      summary: Liveness + DB status
+      responses: { "200": { description: OK } }
+  /v1/auth/login:
+    post:
+      security: []
+      summary: Verify credentials → JWT carrying tenant + effective permissions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [tenantSlug, email, password]
+              properties:
+                tenantSlug: { type: string }
+                email: { type: string, format: email }
+                password: { type: string }
+      responses:
+        "200": { description: Access token + refresh token + user }
+        "401": { description: Invalid credentials, content: { application/problem+json: { schema: { $ref: "#/components/schemas/Problem" } } } }
+        "429": { description: Rate limited (per-IP) or account locked (per-account, progressive) — see Retry-After }
+  /v1/auth/password:
+    post:
+      summary: Change password (verifies current, enforces strength, revokes other sessions)
+      responses:
+        "200": { description: Changed }
+        "401": { description: Current password incorrect }
+        "422": { description: New password too weak }
+  /v1/auth/refresh:
+    post:
+      security: []
+      summary: Rotate a refresh token → new access + refresh (old token single-use)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, required: [refreshToken], properties: { refreshToken: { type: string } } }
+      responses:
+        "200": { description: New tokens }
+        "401": { description: Invalid/expired/revoked refresh token }
+  /v1/auth/logout:
+    post:
+      security: []
+      summary: Revoke a refresh token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { type: object, required: [refreshToken], properties: { refreshToken: { type: string } } }
+      responses: { "200": { description: Revoked } }
+  /v1/sites:
+    get:
+      summary: List sites (RLS-scoped)
+      responses: { "200": { description: Sites } }
+    post:
+      summary: Create a site
+      responses: { "201": { description: Created }, "409": { description: Duplicate } }
+  /v1/sites/{id}:
+    patch:
+      summary: Update a site
+      parameters: [{ name: id, in: path, required: true, schema: { type: string, format: uuid } }]
+      responses: { "200": { description: Updated }, "404": { description: Not found } }
+    delete:
+      summary: Soft-delete a site
+      parameters: [{ name: id, in: path, required: true, schema: { type: string, format: uuid } }]
+      responses: { "204": { description: Deleted } }
+  # /v1/{vehicles,employees,vendors,drivers,cost-centers,shifts,routes,rate-cards}
+  # expose the same list/create/update/delete shape as /v1/sites.
+  /v1/trips:
+    post:
+      summary: Create a trip
+      responses: { "201": { description: Created } }
+  /v1/trips/{id}/assign:
+    post:
+      summary: Dispatch — assign vehicle + driver (validates capacity & driver state)
+      parameters: [{ name: id, in: path, required: true, schema: { type: string, format: uuid } }]
+      responses:
+        "200": { description: Assigned }
+        "409": { description: Trip not in an assignable state }
+        "422": { description: Vehicle/driver invalid }
+  /v1/trips/{id}/start:
+    post:
+      summary: Start an assigned trip (lifecycle)
+      parameters: [{ name: id, in: path, required: true, schema: { type: string, format: uuid } }]
+      responses: { "200": { description: Started }, "409": { description: Wrong state } }
+  /v1/trips/{id}/complete:
+    post:
+      summary: Complete an in-progress trip (lifecycle)
+      parameters: [{ name: id, in: path, required: true, schema: { type: string, format: uuid } }]
+      responses: { "200": { description: Completed }, "409": { description: Wrong state } }
+  /v1/drivers/{id}/verify:
+    post:
+      summary: Verify or reject a driver (sensitive; MFA step-up per policy)
+      parameters: [{ name: id, in: path, required: true, schema: { type: string, format: uuid } }]
+      responses: { "200": { description: Updated }, "404": { description: Not found } }
+  /v1/auth/mfa/enroll:
+    post:
+      summary: Enroll a TOTP factor (returns secret + otpauth URI)
+      responses: { "200": { description: Secret issued } }
+  /v1/auth/mfa/verify:
+    post:
+      summary: Confirm TOTP enrollment with a code
+      responses: { "200": { description: MFA enabled }, "401": { description: Invalid code } }
+  /v1/auth/mfa/challenge:
+    post:
+      summary: Step-up — verify a code → short-lived token with mfa:true
+      responses: { "200": { description: Step-up token }, "401": { description: Invalid code } }
+  /v1/bookings:
+    post:
+      summary: Create a booking (eligibility + capacity → confirmed 201 or waitlisted 202)
+      responses: { "201": { description: Confirmed }, "202": { description: Waitlisted }, "409": { description: Duplicate } }
+    get: { summary: List bookings, responses: { "200": { description: Bookings } } }
+  /v1/bookings/{id}/cancel:
+    post:
+      summary: Cancel a booking (frees the seat + promotes the first waitlisted rider)
+      parameters: [{ name: id, in: path, required: true, schema: { type: string, format: uuid } }]
+      responses: { "200": { description: Cancelled } }
+  /v1/tracking/pings:
+    post:
+      summary: Batch GPS ingest → partitioned pings + last-position upsert
+      responses: { "202": { description: Accepted } }
+  /v1/tracking/vehicles:
+    get: { summary: Control-tower last-known fleet positions, responses: { "200": { description: Positions } } }
+  /v1/incidents:
+    post: { summary: Raise an incident / SOS, responses: { "201": { description: Raised } } }
+    get: { summary: List incidents, responses: { "200": { description: Incidents } } }
+  /v1/incidents/{id}/resolve:
+    post:
+      summary: Resolve an incident
+      parameters: [{ name: id, in: path, required: true, schema: { type: string, format: uuid } }]
+      responses: { "200": { description: Resolved } }
+  /v1/notifications/send:
+    post:
+      summary: Render a DB template → dispatch on a channel → record delivery
+      responses: { "200": { description: Sent/queued }, "422": { description: Unknown template } }
+  /v1/routes/optimize:
+    post:
+      summary: Route Optimization Engine — capacitated nearest-neighbour
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [depot, capacity, stops]
+              properties:
+                depot: { $ref: "#/components/schemas/LatLng" }
+                capacity: { type: integer, minimum: 1 }
+                stops:
+                  type: array
+                  items:
+                    allOf:
+                      - $ref: "#/components/schemas/LatLng"
+                      - type: object
+                        required: [id, demand]
+                        properties:
+                          id: { type: string }
+                          demand: { type: integer, minimum: 0 }
+      responses:
+        "200": { description: Optimized routes }
+        "403": { description: Forbidden, content: { application/problem+json: { schema: { $ref: "#/components/schemas/Problem" } } } }
+  /v1/checkin/token:
+    post:
+      summary: Issue a QR check-in/out token
+      responses: { "200": { description: Signed token + expiry } }
+  /v1/checkin/verify:
+    post:
+      summary: Verify a QR token and record a trip event (idempotent)
+      responses:
+        "200": { description: Verified }
+        "409": { description: Invalid/expired QR }
+  /v1/notifications/preview:
+    post:
+      summary: Render a notification template + channel-limit check
+      responses: { "200": { description: Rendered text } }
+  /v1/exports/erp:
+    post:
+      summary: SAP/ERP export — idempotent cost batch (CSV / IDoc / JSON)
+      responses: { "200": { description: Export with idempotency key } }
+  /v1/dashboard/kpis:
+    get:
+      summary: Tenant KPI counts (RLS-scoped)
+      responses: { "200": { description: KPI counts } }
+  /v1/reports/operational:
+    get:
+      summary: Operational report (trips/on-time/no-shows) for a date range
+      parameters:
+        - { name: from, in: query, required: true, schema: { type: string, format: date } }
+        - { name: to, in: query, required: true, schema: { type: string, format: date } }
+      responses: { "200": { description: Aggregated metrics } }

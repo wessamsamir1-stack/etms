@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>How ETMS Works — كيف يعمل نظام إدارة نقل الموظفين</title>
+<style>
+  :root{
+    --paper:#FBFCFE; --card:#FFFFFF; --ink:#0F1B2D; --muted:#5A6B7E;
+    --line:#D8E0EA; --brand:#1E5AA8; --brand-tint:#EAF1FB;
+    --teal:#0E9384; --teal-tint:#E6F5F2;
+    --green:#16A34A; --amber:#D97706; --red:#DC2626; --sky:#0EA5E9; --slate:#64748B;
+    --sans: system-ui,-apple-system,"Segoe UI",Tahoma,"Helvetica Neue",Arial,sans-serif;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --paper:#0E1622; --card:#16202E; --ink:#E7EEF6; --muted:#9DB0C3;
+      --line:#26364A; --brand:#5B9BE0; --brand-tint:#152840;
+      --teal:#34C7B5; --teal-tint:#10312E;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#0E1622; --card:#16202E; --ink:#E7EEF6; --muted:#9DB0C3;
+    --line:#26364A; --brand:#5B9BE0; --brand-tint:#152840;
+    --teal:#34C7B5; --teal-tint:#10312E;
+  }
+  :root[data-theme="light"]{
+    --paper:#FBFCFE; --card:#FFFFFF; --ink:#0F1B2D; --muted:#5A6B7E;
+    --line:#D8E0EA; --brand:#1E5AA8; --brand-tint:#EAF1FB;
+    --teal:#0E9384; --teal-tint:#E6F5F2;
+  }
+
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:var(--paper); color:var(--ink); font-family:var(--sans);
+    line-height:1.4; -webkit-font-smoothing:antialiased;
+  }
+  .sheet{max-width:940px; margin:0 auto; padding:28px 28px 40px}
+
+  /* ---- toolbar (screen only) ---- */
+  .bar{display:flex; justify-content:flex-end; gap:8px; margin-bottom:14px}
+  .btn{
+    font:600 13px/1 var(--sans); color:#fff; background:var(--brand);
+    border:0; border-radius:8px; padding:9px 14px; cursor:pointer;
+  }
+  .btn.ghost{background:transparent; color:var(--brand); border:1px solid var(--line)}
+  @media print{.bar{display:none}}
+
+  /* ---- header ---- */
+  header{
+    display:flex; align-items:flex-start; justify-content:space-between; gap:18px;
+    border-bottom:2px solid var(--brand); padding-bottom:16px; margin-bottom:20px;
+  }
+  .brand{display:flex; align-items:center; gap:12px}
+  .logo{width:40px;height:40px;border-radius:10px;background:var(--brand);
+    display:grid;place-items:center;color:#fff;flex:none}
+  h1{font-size:22px; line-height:1.15; margin:0; text-wrap:balance;
+    letter-spacing:-.01em}
+  .h1-ar{font-size:18px; color:var(--muted); font-weight:600; margin-top:2px}
+  .kicker{font:700 11px/1 var(--sans); letter-spacing:.14em; text-transform:uppercase;
+    color:var(--teal); margin:0 0 6px}
+  .meta{text-align:right; color:var(--muted); font-size:12px; padding-top:4px}
+  .meta .ar{display:block}
+
+  h2{font-size:12px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted);
+    margin:24px 0 10px; font-weight:700}
+  h2 .ar{ text-transform:none; letter-spacing:0; color:var(--muted); font-weight:600}
+
+  .en{display:block}
+  .ar{display:block; direction:rtl; unicode-bidi:isolate}
+
+  /* ---- actors ---- */
+  .grid3{display:grid; grid-template-columns:repeat(3,1fr); gap:14px}
+  .card{background:var(--card); border:1px solid var(--line); border-radius:12px;
+    padding:14px 15px; break-inside:avoid}
+  .card .ico{width:30px;height:30px;color:var(--brand);margin-bottom:8px}
+  .card .role{font-weight:700; font-size:15px}
+  .card .role .ar{font-weight:600; color:var(--muted); font-size:13px; margin-top:1px}
+  .card p{margin:8px 0 0; font-size:12.5px; color:var(--muted)}
+  .card p .ar{margin-top:2px}
+
+  /* ---- security spine ---- */
+  .spine{background:var(--brand-tint); border:1px solid var(--line); border-radius:12px;
+    padding:14px 16px}
+  .spine-flow{display:flex; align-items:stretch; gap:8px; flex-wrap:wrap}
+  .node{flex:1 1 0; min-width:120px; background:var(--card); border:1px solid var(--line);
+    border-radius:10px; padding:9px 11px}
+  .node b{font-size:12.5px; display:block}
+  .node .ar{font-size:11.5px; color:var(--muted); margin-top:1px}
+  .arrow{display:flex; align-items:center; color:var(--brand); flex:none}
+  .spine-note{margin-top:10px; font-size:12px; color:var(--brand); font-weight:600}
+  .spine-note .ar{color:var(--brand); font-weight:600}
+
+  /* ---- timeline ---- */
+  .timeline{position:relative; margin-top:4px}
+  .step{display:grid; grid-template-columns:44px 34px 1fr; gap:14px; align-items:start;
+    padding:12px 0; break-inside:avoid; position:relative}
+  .step:not(:last-child)::before{content:""; position:absolute; left:21px; top:44px;
+    bottom:-12px; width:2px; background:var(--line)}
+  .num{width:44px;height:44px;border-radius:50%; background:var(--brand); color:#fff;
+    display:grid; place-items:center; font-weight:800; font-size:18px;
+    font-variant-numeric:tabular-nums; z-index:1}
+  .step .ico{width:30px;height:30px;color:var(--teal); margin-top:6px}
+  .step h3{margin:2px 0 0; font-size:16px; line-height:1.2}
+  .step h3 .ar{font-size:14px; color:var(--muted); font-weight:600; margin-top:1px}
+  .step p{margin:6px 0 0; font-size:12.5px; color:var(--muted); max-width:62ch}
+  .step p .ar{margin-top:2px}
+
+  /* ---- foundations ---- */
+  .found .card .role{font-size:14px}
+  .found .ico{color:var(--teal)}
+
+  /* ---- legend / footer ---- */
+  footer{margin-top:22px; border-top:1px solid var(--line); padding-top:12px;
+    display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap;
+    font-size:11.5px; color:var(--muted)}
+  .legend{display:flex; gap:14px; flex-wrap:wrap}
+  .dot{display:inline-flex; align-items:center; gap:6px}
+  .swatch{width:11px;height:11px;border-radius:3px;display:inline-block}
+
+  @media print{
+    :root{ --paper:#fff; --card:#fff; --ink:#0F1B2D; --muted:#54657a; --line:#cdd8e4;
+      --brand:#1E5AA8; --brand-tint:#EEF4FC; --teal:#0E7C6F; }
+    @page{ size:A4; margin:12mm }
+    .sheet{max-width:none; padding:0}
+    body{font-size:12px}
+    .card,.node,.spine{box-shadow:none}
+  }
+</style>
+</head>
+<body>
+<div class="sheet">
+
+  <div class="bar">
+    <button class="btn" onclick="window.print()">Print / Save as PDF · طباعة / حفظ PDF</button>
+  </div>
+
+  <header>
+    <div class="brand">
+      <div class="logo" aria-hidden="true">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 16V7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v9"/><path d="M3 16h18"/><circle cx="7.5" cy="18.5" r="1.6"/><circle cx="16.5" cy="18.5" r="1.6"/><path d="M8 5v11M16 5v11"/></svg>
+      </div>
+      <div>
+        <p class="kicker">Employee Transportation · نقل الموظفين</p>
+        <h1>How the ETMS App Works<span class="h1-ar" dir="rtl">كيف يعمل نظام إدارة نقل الموظفين</span></h1>
+      </div>
+    </div>
+    <div class="meta">
+      <span class="en">Enterprise · Multi-tenant · Secure</span>
+      <span class="ar" dir="rtl">للمؤسسات · متعدد الشركات · آمن</span>
+    </div>
+  </header>
+
+  <!-- ACTORS -->
+  <h2>Who uses it <span class="ar" dir="rtl">· من يستخدمه</span></h2>
+  <div class="grid3">
+    <div class="card">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.2"/><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6"/></svg>
+      <div class="role">Rider (Employee)<span class="ar" dir="rtl">الراكب (موظف)</span></div>
+      <p><span class="en">Books a seat, sees live ETA, checks in by QR, raises SOS.</span>
+         <span class="ar" dir="rtl">يحجز مقعدًا، يتابع الوصول مباشرةً، يسجّل الصعود بـ QR، ويطلب الطوارئ.</span></p>
+    </div>
+    <div class="card">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15V8a2 2 0 0 1 2-2h9l4 4v5"/><path d="M3 15h18"/><circle cx="7.5" cy="17.5" r="1.5"/><circle cx="16.5" cy="17.5" r="1.5"/></svg>
+      <div class="role">Driver<span class="ar" dir="rtl">السائق</span></div>
+      <p><span class="en">Runs assigned trips, boards riders with proof — works offline.</span>
+         <span class="ar" dir="rtl">ينفّذ الرحلات المُسندة، يُصعِد الركاب بإثبات — ويعمل بدون إنترنت.</span></p>
+    </div>
+    <div class="card">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M7 20h10M8 8h5M8 12h8"/></svg>
+      <div class="role">Operations &amp; Admin<span class="ar" dir="rtl">العمليات والإدارة</span></div>
+      <p><span class="en">Plans routes, dispatches, monitors the fleet, approves &amp; bills.</span>
+         <span class="ar" dir="rtl">يخطّط المسارات، يوزّع، يراقب الأسطول، يوافق ويُفوتِر.</span></p>
+    </div>
+  </div>
+
+  <!-- SECURITY SPINE -->
+  <h2>Every request is secured <span class="ar" dir="rtl">· كل طلب مؤمَّن</span></h2>
+  <div class="spine">
+    <div class="spine-flow">
+      <div class="node"><b>Login</b><span class="ar" dir="rtl">تسجيل الدخول</span></div>
+      <div class="arrow" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
+      <div class="node"><b>Token: tenant + permissions</b><span class="ar" dir="rtl">توكن: الشركة + الصلاحيات</span></div>
+      <div class="arrow" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
+      <div class="node"><b>Permission check (RBAC)</b><span class="ar" dir="rtl">فحص الصلاحيات لكل مسار</span></div>
+      <div class="arrow" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></div>
+      <div class="node"><b>Data isolation (RLS)</b><span class="ar" dir="rtl">عزل بيانات كل شركة</span></div>
+    </div>
+    <div class="spine-note"><span class="en">Each company sees only its own data. Sensitive actions need a second factor (MFA).</span>
+      <span class="ar" dir="rtl">كل شركة ترى بياناتها فقط. العمليات الحسّاسة تتطلّب تحقّقًا ثنائيًا (MFA).</span></div>
+  </div>
+
+  <!-- JOURNEY -->
+  <h2>How a trip happens — step by step <span class="ar" dir="rtl">· كيف تتم الرحلة — خطوة بخطوة</span></h2>
+  <div class="timeline">
+
+    <div class="step">
+      <div class="num">1</div>
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg>
+      <div>
+        <h3>Eligibility &amp; smart approval<span class="ar" dir="rtl">الأهلية والموافقة الذكية</span></h3>
+        <p><span class="en">AI reads the employee profile &amp; HR status; deterministic rules score it green / amber / red. Green cases are auto-approved, unclear ones go to a human.</span>
+           <span class="ar" dir="rtl">الذكاء الاصطناعي يقرأ ملف الموظف وحالته في الموارد البشرية؛ قواعد حاسمة تصنّفه أخضر / أصفر / أحمر. الأخضر يُوافَق عليه تلقائيًا، والغامض يُحال لموظف.</span></p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="num">2</div>
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11V8a3 3 0 0 1 3-3h8a3 3 0 0 1 3 3v3"/><path d="M4 11h16v5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><path d="M8 18v2M16 18v2"/></svg>
+      <div>
+        <h3>Booking<span class="ar" dir="rtl">الحجز</span></h3>
+        <p><span class="en">The employee books a seat for a shift &amp; direction. If the trip is full, they are waitlisted and auto-promoted when a seat frees up.</span>
+           <span class="ar" dir="rtl">يحجز الموظف مقعدًا لوردية واتجاه. عند اكتمال الرحلة يُوضع في قائمة الانتظار ويُرقّى تلقائيًا عند توفّر مقعد.</span></p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="num">3</div>
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9l2 2 4-4M9 15h6"/></svg>
+      <div>
+        <h3>Dispatch<span class="ar" dir="rtl">التوزيع</span></h3>
+        <p><span class="en">Operations assigns a vehicle + a verified driver. The system checks capacity, driver verification and valid documents before confirming.</span>
+           <span class="ar" dir="rtl">تُسنِد العمليات مركبة + سائقًا موثّقًا. يتحقّق النظام من السعة وتوثيق السائق وصلاحية الوثائق قبل التأكيد.</span></p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="num">4</div>
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3M21 21v-3M17 21h4"/></svg>
+      <div>
+        <h3>Trip &amp; QR check-in<span class="ar" dir="rtl">الرحلة والصعود بـ QR</span></h3>
+        <p><span class="en">The driver runs the route; each pickup / drop-off is captured by a signed QR scan. Everything works offline and syncs safely when back online.</span>
+           <span class="ar" dir="rtl">ينفّذ السائق المسار؛ يُسجَّل كل صعود / نزول بمسح QR موقّع. كل شيء يعمل دون اتصال ويُزامَن بأمان عند عودة الشبكة.</span></p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="num">5</div>
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.2 7-11a7 7 0 0 0-14 0c0 4.8 7 11 7 11z"/><circle cx="12" cy="10" r="2.4"/></svg>
+      <div>
+        <h3>Live tracking &amp; SOS<span class="ar" dir="rtl">التتبّع المباشر والطوارئ</span></h3>
+        <p><span class="en">GPS drives live ETA and a control-tower map. Geofences update status automatically; a panic button raises an incident with location.</span>
+           <span class="ar" dir="rtl">يُغذّي GPS الوصول المباشر وخريطة برج التحكّم. تحدّث الأسيجة الجغرافية الحالة تلقائيًا؛ وزر الطوارئ يرفع بلاغًا بالموقع.</span></p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="num">6</div>
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12v18l-3-2-3 2-3-2-3 2z"/><path d="M9 8h6M9 12h6"/></svg>
+      <div>
+        <h3>Company-owned — recorded, not charged<span class="ar" dir="rtl">مملوكة للشركة — تُسجَّل ولا تُخصم عند الركوب</span></h3>
+        <p><span class="en">The transport is company-owned — no vendor and no rate card. When a trip completes the ride is recorded with its trip details; nothing is charged to the employee at the door.</span>
+           <span class="ar" dir="rtl">المواصلات مملوكة للشركة — بلا مورّد ولا تعرفة. عند اكتمال الرحلة تُسجَّل بتفاصيلها؛ ولا يُخصم شيء من الموظف عند الركوب.</span></p>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="num">7</div>
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v14H4z"/><path d="M4 9h16M9 13h6M9 16h4"/></svg>
+      <div>
+        <h3>Usage report → HR sets the deduction<span class="ar" dir="rtl">تقرير الاستخدام ← الموارد البشرية تحدّد الخصم</span></h3>
+        <p><span class="en">The system reports how many times the employee rode (rides &amp; distinct days) and the details of every trip. HR decides the deduction — a fixed monthly amount per employee, or an amount they set for seasonal/occasional riders. The system reports; it never computes the money. A round trip on one day counts as one day.</span>
+           <span class="ar" dir="rtl">يُصدر السيستم تقريرًا بعدد مرات ركوب الموظف (المرّات والأيام) وتفاصيل كل رحلة. والموارد البشرية تحدّد الخصم — مبلغ شهري ثابت لكل موظف، أو مبلغ تحدّده لمن يستخدمها موسميًا/بعض الأيام. السيستم يُقدّم التقرير ولا يحسب المبلغ. والذهاب والعودة في يوم = يوم واحد.</span></p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- FOUNDATIONS -->
+  <h2>What it runs on <span class="ar" dir="rtl">· الأساس التقني</span></h2>
+  <div class="grid3 found">
+    <div class="card">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="5" rx="1.5"/><rect x="3" y="11" width="18" height="5" rx="1.5"/><path d="M7 6.5h.01M7 13.5h.01"/></svg>
+      <div class="role">Secure REST API<span class="ar" dir="rtl">واجهة برمجية آمنة</span></div>
+      <p><span class="en">One backend for all apps, role-guarded.</span><span class="ar" dir="rtl">خادم واحد لكل التطبيقات، محميّ بالصلاحيات.</span></p>
+    </div>
+    <div class="card">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v6c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6"/></svg>
+      <div class="role">Multi-tenant database<span class="ar" dir="rtl">قاعدة بيانات متعددة الشركات</span></div>
+      <p><span class="en">PostgreSQL + maps; strict per-company isolation.</span><span class="ar" dir="rtl">PostgreSQL + خرائط؛ عزل صارم لكل شركة.</span></p>
+    </div>
+    <div class="card">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v6M12 15v6M3 12h6M15 12h6"/><circle cx="12" cy="12" r="3"/></svg>
+      <div class="role">Integrations<span class="ar" dir="rtl">التكاملات</span></div>
+      <p><span class="en">SAP SuccessFactors (HR), notifications, ERP.</span><span class="ar" dir="rtl">SAP SuccessFactors (HR)، الإشعارات، وأنظمة ERP.</span></p>
+    </div>
+  </div>
+
+  <footer>
+    <div class="legend">
+      <span class="dot"><span class="swatch" style="background:var(--green)"></span>Auto-approved · موافقة تلقائية</span>
+      <span class="dot"><span class="swatch" style="background:var(--amber)"></span>Needs review · مراجعة</span>
+      <span class="dot"><span class="swatch" style="background:var(--red)"></span>Rejected · مرفوض</span>
+    </div>
+    <div style="text-align:right">
+      <span class="en">ETMS — Employee Transportation Management System</span>
+      <span class="ar" dir="rtl">نظام إدارة نقل الموظفين</span>
+    </div>
+  </footer>
+
+</div>
+</body>
+</html>

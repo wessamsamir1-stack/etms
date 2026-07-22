@@ -1,0 +1,29 @@
+# Flutter / Dart
+.dart_tool/
+.packages
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+pubspec.lock
+
+# Generated localization
+lib/l10n/generated/
+
+# Codegen (if later enabled)
+*.g.dart
+*.freezed.dart
+*.mocks.dart
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Env / secrets
+.env
+.env.*
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
+
+# OS
+.DS_Store

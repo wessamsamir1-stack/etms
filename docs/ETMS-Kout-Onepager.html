@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ETMS — Smart Workforce Transportation for Kout Food Group</title>
+<style>
+:root{
+  --bg:#ffffff; --tint:#eef4f6; --tint2:#f6f9fb; --ink:#16263e; --muted:#5a6a86; --faint:#8a97ac;
+  --teal:#0e7c86; --teal-d:#0a5b63; --amber:#d99a2b; --amber-d:#b87d18; --line:#dde6ee; --green:#1f8a5b;
+  --serif:Georgia,'Times New Roman',serif; --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{font-family:var(--sans);color:var(--ink);background:#8fa1b5;font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:var(--serif);font-weight:700;margin:0;letter-spacing:-.01em}
+p{margin:0 0 10px}
+.page{width:210mm;min-height:296mm;margin:14px auto;background:var(--bg);position:relative;padding:18mm 18mm 16mm;
+  box-shadow:0 12px 40px #0005;display:flex;flex-direction:column}
+.eyebrow{font-size:11px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:var(--teal)}
+.amber{color:var(--amber-d)}
+.rule{width:56px;height:3px;background:var(--amber);border:0;border-radius:3px;margin:12px 0 16px}
+.foot{margin-top:auto;padding-top:12px;border-top:1px solid var(--line);display:flex;justify-content:space-between;
+  font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--faint)}
+.mono{font-variant-numeric:tabular-nums}
+
+/* header brand row */
+.brandrow{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;color:var(--ink);letter-spacing:.06em;font-size:14px}
+.brand .m{width:30px;height:30px}
+.forwho{font-size:11px;color:var(--muted);text-align:right;line-height:1.4}
+.forwho b{color:var(--teal);font-weight:800}
+
+/* cover */
+h1.title{font-size:42px;line-height:1.08;max-width:15ch;margin-bottom:8px}
+.title .hl{color:var(--teal)}
+.sub{font-size:17px;color:var(--muted);max-width:46ch;line-height:1.5}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px}
+.chip{display:inline-flex;align-items:center;gap:7px;background:var(--tint);color:var(--teal-d);border:1px solid #cfe1e3;
+  border-radius:999px;padding:7px 14px;font-size:12.5px;font-weight:700}
+.chip svg{width:15px;height:15px}
+
+/* section heads */
+h2.sec{font-size:28px;line-height:1.12;color:var(--ink);max-width:22ch}
+.lead{font-size:15.5px;color:var(--muted);max-width:60ch}
+
+/* problem cards */
+.pgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+.pcard{display:flex;gap:12px;background:var(--tint2);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.pcard .ic{flex:0 0 34px;width:34px;height:34px;border-radius:9px;background:#fff;border:1px solid var(--line);display:grid;place-items:center}
+.pcard .ic svg{width:19px;height:19px;color:var(--teal)}
+.pcard b{font-size:14.5px;display:block;margin-bottom:2px}
+.pcard p{font-size:12.8px;color:var(--muted);margin:0}
+
+/* service devices */
+.svc{display:grid;grid-template-columns:1fr 1fr 1.25fr;gap:14px;margin-top:14px;align-items:start}
+.dev{background:var(--tint2);border:1px solid var(--line);border-radius:14px;padding:14px;text-align:center}
+.dev h3{font-size:16px;color:var(--ink);margin:10px 0 4px}
+.dev .k{font-size:10.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--amber-d)}
+.dev p{font-size:12.4px;color:var(--muted);margin:6px 0 0}
+.dev svg{width:100%;height:auto}
+.svc ul{margin:8px 0 0;padding:0;list-style:none;text-align:left}
+.svc li{font-size:12.3px;color:var(--ink);padding:3px 0 3px 16px;position:relative}
+.svc li::before{content:"";position:absolute;left:0;top:9px;width:6px;height:6px;border-radius:2px;background:var(--amber)}
+
+/* value */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:16px 0}
+.kpi{background:var(--tint2);border:1px solid var(--line);border-radius:14px;padding:16px 12px;text-align:center;position:relative;overflow:hidden}
+.kpi::after{content:"";position:absolute;inset-inline:0;bottom:0;height:4px;background:var(--teal)}
+.kpi.a::after{background:var(--amber)} .kpi.g::after{background:var(--green)}
+.kpi .v{font-family:var(--serif);font-size:32px;font-weight:700;color:var(--ink);line-height:1}
+.kpi .l{font-size:11px;color:var(--muted);margin-top:6px}
+.vlist{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:6px}
+.vrow{display:flex;gap:11px;align-items:flex-start}
+.vrow .n{flex:0 0 26px;width:26px;height:26px;border-radius:8px;background:var(--teal);color:#fff;display:grid;place-items:center;font-family:var(--serif);font-weight:700;font-size:14px}
+.vrow b{font-size:14px} .vrow p{font-size:12.4px;color:var(--muted);margin:2px 0 0}
+.cta{margin-top:18px;background:linear-gradient(120deg,#0e7c86,#0a5b63);color:#fff;border-radius:16px;padding:22px 26px}
+.cta h3{color:#fff;font-size:21px;margin-bottom:6px;max-width:26ch}
+.cta p{color:#cfe9ec;margin:0;font-size:14px}
+.cta .step{display:inline-block;margin-top:12px;background:var(--amber);color:#3a2a06;font-weight:800;font-size:13px;padding:9px 18px;border-radius:999px}
+
+.hero-wrap{margin-top:20px}
+.about{margin-top:18px;background:var(--tint2);border:1px solid var(--line);border-inline-start:4px solid var(--teal);
+  border-radius:0 12px 12px 0;padding:13px 18px}
+.about .atag{font-size:10.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--teal);margin-bottom:5px}
+.about p{font-size:12.4px;color:var(--muted);margin:0;line-height:1.55;max-width:none}
+.about b{color:var(--ink);font-weight:700}
+@media print{ body{background:#fff} .page{margin:0;box-shadow:none;width:auto;min-height:auto;page-break-after:always} @page{size:A4;margin:0} }
+@media(max-width:760px){ .page{width:auto;padding:20px;min-height:0} .pgrid,.svc,.kpis,.vlist{grid-template-columns:1fr} h1.title{font-size:32px} }
+</style>
+</head>
+<body>
+
+<!-- ================= PAGE 1 — COVER / VALUE PROPOSITION ================= -->
+<section class="page">
+  <div class="brandrow">
+    <div class="brand"><svg class="m" viewBox="0 0 40 40" fill="none"><rect x="6" y="12" width="28" height="16" rx="3" stroke="#0e7c86" stroke-width="2.2"/><circle cx="13" cy="30" r="3" fill="#d99a2b"/><circle cx="27" cy="30" r="3" fill="#d99a2b"/><path d="M6 19h28" stroke="#0e7c86" stroke-width="1.5"/></svg> ETMS</div>
+    <div class="forwho">Prepared for <b>Kout Food Group</b><br>by House Lords for Custom Programs</div>
+  </div>
+
+  <div class="eyebrow">Employee Transportation · Digital Transformation</div>
+  <h1 class="title" style="margin-top:12px">Move your <span class="hl">workforce</span>, not just your buses.</h1>
+  <p class="sub">A smart platform that manages employee transportation between your accommodations and branches — turning a daily source of hidden cost into a measured, on-time, and controllable operation.</p>
+
+  <div class="chips">
+    <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> On-time shifts</span>
+    <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg> Verified attendance</span>
+    <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg> Lower operating cost</span>
+    <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h4l3 8 4-16 3 8h4"/></svg> Full live visibility</span>
+  </div>
+
+  <!-- HERO ILLUSTRATION -->
+  <div class="hero-wrap">
+  <svg viewBox="0 0 720 340" width="100%" fill="none" font-family="var(--sans)">
+    <defs>
+      <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f2f8f9"/><stop offset="1" stop-color="#eaf3f4"/></linearGradient>
+      <linearGradient id="bus" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#12909c"/><stop offset="1" stop-color="#0e7c86"/></linearGradient>
+    </defs>
+    <rect x="0" y="0" width="720" height="340" rx="18" fill="url(#sky)"/>
+    <!-- building (branch) -->
+    <g transform="translate(70,70)">
+      <rect x="0" y="30" width="150" height="150" rx="6" fill="#ffffff" stroke="#cddbe0" stroke-width="2"/>
+      <rect x="0" y="30" width="150" height="26" rx="6" fill="#0e7c86"/>
+      <g fill="#e4eef0"><rect x="16" y="72" width="26" height="26" rx="3"/><rect x="62" y="72" width="26" height="26" rx="3"/><rect x="108" y="72" width="26" height="26" rx="3"/><rect x="16" y="112" width="26" height="26" rx="3"/><rect x="62" y="112" width="26" height="26" rx="3"/><rect x="108" y="112" width="26" height="26" rx="3"/></g>
+      <rect x="58" y="150" width="34" height="30" fill="#d99a2b"/>
+      <text x="75" y="20" text-anchor="middle" font-size="12" font-weight="800" fill="#5a6a86">BRANCH</text>
+    </g>
+    <!-- route dotted line -->
+    <path d="M240 250 C330 250 340 150 430 150 S560 120 610 100" stroke="#d99a2b" stroke-width="3" stroke-dasharray="2 11" stroke-linecap="round"/>
+    <circle cx="240" cy="250" r="6" fill="#0e7c86"/><circle cx="430" cy="150" r="6" fill="#d99a2b"/>
+    <!-- pin at accommodation -->
+    <g transform="translate(596,60)"><path d="M14 44C14 44 28 28 28 16A14 14 0 1 0 0 16C0 28 14 44 14 44Z" fill="#0e7c86"/><circle cx="14" cy="16" r="6" fill="#fff"/><text x="14" y="60" text-anchor="middle" font-size="11" font-weight="800" fill="#5a6a86">STAFF HOMES</text></g>
+    <!-- BUS -->
+    <g transform="translate(250,196)">
+      <rect x="0" y="6" width="196" height="74" rx="14" fill="url(#bus)"/>
+      <rect x="12" y="20" width="150" height="30" rx="6" fill="#cfeef0"/>
+      <g fill="#0a5b63"><rect x="12" y="20" width="34" height="30" rx="4"/><rect x="52" y="20" width="34" height="30" rx="4"/><rect x="92" y="20" width="34" height="30" rx="4"/><rect x="132" y="20" width="30" height="30" rx="4"/></g>
+      <rect x="168" y="18" width="20" height="40" rx="4" fill="#d99a2b"/>
+      <circle cx="46" cy="82" r="13" fill="#16263e"/><circle cx="46" cy="82" r="5" fill="#cfeef0"/>
+      <circle cx="150" cy="82" r="13" fill="#16263e"/><circle cx="150" cy="82" r="5" fill="#cfeef0"/>
+    </g>
+    <!-- floating phone card -->
+    <g transform="translate(470,168)">
+      <rect x="0" y="0" width="120" height="150" rx="16" fill="#ffffff" stroke="#cddbe0" stroke-width="2"/>
+      <rect x="12" y="14" width="96" height="10" rx="5" fill="#e4eef0"/>
+      <rect x="12" y="34" width="96" height="52" rx="8" fill="#eef6f7"/>
+      <path d="M20 74 C40 66 52 50 74 52 S100 44 100 44" stroke="#0e7c86" stroke-width="3" fill="none"/>
+      <circle cx="100" cy="44" r="5" fill="#d99a2b"/>
+      <rect x="12" y="96" width="96" height="16" rx="5" fill="#0e7c86"/>
+      <text x="60" y="108" text-anchor="middle" font-size="10" font-weight="800" fill="#fff">Bus in 6 min</text>
+      <rect x="12" y="120" width="60" height="10" rx="5" fill="#e4eef0"/><rect x="12" y="134" width="80" height="10" rx="5" fill="#f0f4f6"/>
+    </g>
+  </svg>
+  </div>
+
+  <div class="about">
+    <div class="atag">About House Lords for Custom Programs</div>
+    <p>House Lords is a custom-software company with operations in <b>Kuwait</b> and <b>Egypt</b>, designing and managing a broad portfolio of systems for institutions and enterprises across both markets. We are a hands-on engineering partner that organizations rely on to take software from idea to everyday operation — and to keep it running long after launch.</p>
+  </div>
+
+  <div class="foot"><span>ETMS · Smart Workforce Transportation</span><span>Kout Food Group · Confidential</span></div>
+</section>
+
+<!-- ================= PAGE 2 — THE PROBLEM ================= -->
+<section class="page">
+  <div class="eyebrow">01 · The problem we solve</div>
+  <h2 class="sec" style="margin-top:10px">Transportation runs on phone calls — and it costs you every morning.</h2>
+  <hr class="rule">
+  <p class="lead">For a group like Kout — many branches, restaurants, and staff accommodations — the day begins with a fragile, manual operation that decides whether shifts start full and on time. When it slips, the cost is real but hidden, spread across HR, operations, and payroll where no one owns it.</p>
+
+  <div class="pgrid">
+    <div class="pcard"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/></svg></span><div><b>No live visibility</b><p>No one knows where the bus is or when it will arrive — employees wait, or miss it entirely.</p></div></div>
+    <div class="pcard"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16v12H5.2L4 18z"/></svg></span><div><b>Last-minute phone calls</b><p>Drivers are coordinated by call, from memory — no routes, no record, no accountability.</p></div></div>
+    <div class="pcard"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3 8-8"/><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/></svg></span><div><b>Manual attendance</b><p>Boarding is logged by hand or not at all — creating monthly payroll disputes and lost trust.</p></div></div>
+    <div class="pcard"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span><div><b>Late shifts &amp; idle pay</b><p>One late bus short-staffs a line; present staff stand idle, and overtime is authorized to recover.</p></div></div>
+    <div class="pcard"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h4l3 8 4-16 3 8h4"/></svg></span><div><b>No routing or utilization</b><p>Empty seats and inefficient routes quietly burn fuel — with no report that ever reveals it.</p></div></div>
+    <div class="pcard"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg></span><div><b>HR firefighting</b><p>Managers spend the first hour of the day chasing buses instead of leading their teams.</p></div></div>
+  </div>
+
+  <div style="margin-top:16px;background:var(--tint);border:1px solid #cfe1e3;border-radius:14px;padding:16px 18px;display:flex;gap:16px;align-items:center">
+    <svg viewBox="0 0 120 80" width="150" height="90" fill="none" style="flex:0 0 150px">
+      <rect x="0" y="0" width="120" height="80" rx="10" fill="#fff"/>
+      <line x1="14" y1="66" x2="112" y2="66" stroke="#dde6ee" stroke-width="2"/>
+      <rect x="18" y="30" width="12" height="36" rx="3" fill="#d99a2b"/><rect x="38" y="22" width="12" height="44" rx="3" fill="#e0a13a"/>
+      <rect x="58" y="38" width="12" height="28" rx="3" fill="#d99a2b"/><rect x="78" y="16" width="12" height="50" rx="3" fill="#c98a2b"/>
+      <path d="M14 20 L104 20" stroke="#0e7c86" stroke-width="2" stroke-dasharray="3 4"/>
+      <text x="60" y="14" text-anchor="middle" font-size="9" font-weight="800" fill="#5a6a86">HIDDEN DAILY LEAKAGE</text>
+    </svg>
+    <div><b style="font-size:15px;color:var(--ink)">None of it appears on an invoice.</b><p style="font-size:13px;color:var(--muted);margin:4px 0 0">The most expensive costs in transportation are the ones you never see billed — which is exactly why they are never fixed.</p></div>
+  </div>
+
+  <div class="foot"><span>01 · The problem</span><span>Kout Food Group · Confidential</span></div>
+</section>
+
+<!-- ================= PAGE 3 — THE SERVICE ================= -->
+<section class="page">
+  <div class="eyebrow">02 · The service we deliver</div>
+  <h2 class="sec" style="margin-top:10px">One connected platform. Three simple experiences.</h2>
+  <hr class="rule">
+  <p class="lead">Not another tracking app — a complete operating system for workforce transport, built for your model of accommodations and branches. Bilingual (Arabic / English), cloud-based, and offline-ready for the field.</p>
+
+  <div class="svc">
+    <!-- Employee phone -->
+    <div class="dev">
+      <svg viewBox="0 0 150 240"><rect x="20" y="4" width="110" height="232" rx="20" fill="#fff" stroke="#cddbe0" stroke-width="2.5"/><rect x="20" y="4" width="110" height="34" rx="20" fill="#0e7c86"/><text x="75" y="26" text-anchor="middle" font-size="11" font-weight="800" fill="#fff">My Ride</text><rect x="34" y="50" width="82" height="60" rx="8" fill="#eef6f7"/><path d="M42 96C58 88 66 70 86 74s24-10 24-10" stroke="#0e7c86" stroke-width="3" fill="none"/><circle cx="110" cy="64" r="5" fill="#d99a2b"/><rect x="34" y="120" width="82" height="26" rx="7" fill="#0e7c86"/><text x="75" y="137" text-anchor="middle" font-size="10" font-weight="800" fill="#fff">Arrives in 6 min</text><rect x="34" y="156" width="46" height="46" rx="8" fill="#16263e"/><g fill="#fff"><rect x="40" y="162" width="10" height="10"/><rect x="54" y="162" width="6" height="10"/><rect x="64" y="162" width="10" height="10"/><rect x="40" y="176" width="6" height="10"/><rect x="52" y="176" width="10" height="10"/><rect x="66" y="176" width="8" height="10"/><rect x="40" y="190" width="10" height="6"/><rect x="56" y="190" width="8" height="6"/></g><rect x="86" y="156" width="30" height="12" rx="4" fill="#e4eef0"/><rect x="86" y="174" width="30" height="12" rx="4" fill="#e4eef0"/><rect x="86" y="192" width="24" height="10" rx="4" fill="#f0f4f6"/></svg>
+      <div class="k">For employees</div><h3>Employee App</h3>
+      <ul><li>Live bus ETA — no more waiting or missing</li><li>Board in one QR scan</li><li>Raise a transport request</li><li>Arrival &amp; delay alerts</li></ul>
+    </div>
+    <!-- Driver phone -->
+    <div class="dev">
+      <svg viewBox="0 0 150 240"><rect x="20" y="4" width="110" height="232" rx="20" fill="#fff" stroke="#cddbe0" stroke-width="2.5"/><rect x="20" y="4" width="110" height="34" rx="20" fill="#16263e"/><text x="75" y="26" text-anchor="middle" font-size="11" font-weight="800" fill="#fff">Today's Trip</text><rect x="34" y="50" width="82" height="54" rx="8" fill="#eef6f7"/><path d="M40 92 L64 66 L86 82 L110 58" stroke="#0e7c86" stroke-width="3" fill="none"/><circle cx="40" cy="92" r="4" fill="#0e7c86"/><circle cx="110" cy="58" r="5" fill="#d99a2b"/><g><rect x="34" y="114" width="82" height="18" rx="5" fill="#e9f3f0"/><circle cx="44" cy="123" r="4" fill="#1f8a5b"/><rect x="54" y="119" width="42" height="8" rx="4" fill="#c7ddd3"/></g><g><rect x="34" y="138" width="82" height="18" rx="5" fill="#fdf3e0"/><circle cx="44" cy="147" r="4" fill="#d99a2b"/><rect x="54" y="143" width="52" height="8" rx="4" fill="#eddab0"/></g><rect x="34" y="164" width="82" height="24" rx="7" fill="#16263e"/><text x="75" y="180" text-anchor="middle" font-size="10" font-weight="800" fill="#fff">Arrived · scan</text><rect x="34" y="196" width="82" height="12" rx="4" fill="#e4eef0"/></svg>
+      <div class="k">For drivers</div><h3>Driver App</h3>
+      <ul><li>Assigned route &amp; navigation</li><li>Passenger manifest &amp; QR boarding</li><li>Arrival, waiting timer &amp; No-Show</li><li>Live GPS + incident / SOS</li></ul>
+    </div>
+    <!-- Dashboard laptop -->
+    <div class="dev">
+      <svg viewBox="0 0 240 200"><rect x="14" y="10" width="212" height="140" rx="10" fill="#16263e"/><rect x="22" y="18" width="196" height="124" rx="5" fill="#f4f8fa"/>
+        <rect x="22" y="18" width="60" height="124" rx="5" fill="#eaf1f4"/><rect x="30" y="30" width="44" height="9" rx="4" fill="#0e7c86"/><rect x="30" y="46" width="40" height="7" rx="3" fill="#cfdbe2"/><rect x="30" y="58" width="44" height="7" rx="3" fill="#cfdbe2"/><rect x="30" y="70" width="36" height="7" rx="3" fill="#cfdbe2"/>
+        <rect x="92" y="28" width="118" height="62" rx="6" fill="#e9f2f4"/><path d="M100 78 C120 60 140 74 160 56 S196 44 202 40" stroke="#0e7c86" stroke-width="2.5" fill="none"/><circle cx="130" cy="66" r="4" fill="#d99a2b"/><circle cx="170" cy="52" r="4" fill="#0e7c86"/><circle cx="202" cy="40" r="4" fill="#1f8a5b"/>
+        <g><rect x="92" y="98" width="36" height="36" rx="6" fill="#fff" stroke="#dde6ee"/><rect x="132" y="98" width="36" height="36" rx="6" fill="#fff" stroke="#dde6ee"/><rect x="172" y="98" width="38" height="36" rx="6" fill="#fff" stroke="#dde6ee"/><text x="110" y="118" text-anchor="middle" font-size="12" font-weight="800" fill="#0e7c86">98%</text><text x="150" y="118" text-anchor="middle" font-size="12" font-weight="800" fill="#d99a2b">42</text><text x="191" y="118" text-anchor="middle" font-size="12" font-weight="800" fill="#1f8a5b">100%</text><text x="110" y="129" text-anchor="middle" font-size="6.5" fill="#5a6a86">on-time</text><text x="150" y="129" text-anchor="middle" font-size="6.5" fill="#5a6a86">trips</text><text x="191" y="129" text-anchor="middle" font-size="6.5" fill="#5a6a86">verified</text></g>
+        <rect x="86" y="150" width="68" height="8" rx="4" fill="#16263e"/><rect x="70" y="150" width="100" height="8" rx="4" fill="none"/>
+        <rect x="70" y="150" width="100" height="9" rx="3" fill="#16263e"/><rect x="40" y="159" width="160" height="7" rx="3" fill="#16263e"/>
+      </svg>
+      <div class="k">For operations, HR &amp; management</div><h3>Command Center</h3>
+      <ul><li>Live fleet map &amp; trip status</li><li>Dispatch, seats, routes &amp; drivers</li><li>Verified attendance → HR / payroll</li><li>KPIs, analytics &amp; Excel / PDF reports</li><li>Multi-company, roles &amp; branches</li></ul>
+    </div>
+  </div>
+
+  <div class="foot"><span>02 · The service</span><span>Kout Food Group · Confidential</span></div>
+</section>
+
+<!-- ================= PAGE 4 — THE VALUE ================= -->
+<section class="page">
+  <div class="eyebrow">03 · The value for your business</div>
+  <h2 class="sec" style="margin-top:10px">What Kout gains — measured, not promised.</h2>
+  <hr class="rule">
+  <p class="lead">Every capability maps to a business result. From day one the operation is measured against a shared scorecard, with baselines set together and progress visible on the dashboard.</p>
+
+  <div class="kpis">
+    <div class="kpi"><div class="v">+12%</div><div class="l">On-time shift starts</div></div>
+    <div class="kpi g"><div class="v">100%</div><div class="l">Attendance verified</div></div>
+    <div class="kpi a"><div class="v">−15%</div><div class="l">Avoidable overtime</div></div>
+    <div class="kpi"><div class="v">−30%</div><div class="l">Admin &amp; coordination</div></div>
+  </div>
+
+  <div class="vlist">
+    <div class="vrow"><span class="n">1</span><div><b>Full shifts, on time</b><p>Reliable pickups mean lines and restaurants open fully staffed — protecting output and the customer experience your brand is judged on.</p></div></div>
+    <div class="vrow"><span class="n">2</span><div><b>Payroll without disputes</b><p>Digitally verified boarding flows straight into transport-usage records HR and finance can trust — ending the monthly reconciliation.</p></div></div>
+    <div class="vrow"><span class="n">3</span><div><b>Lower, transparent cost</b><p>Better routing and seat utilization cut fuel; automation reclaims management hours; overtime tied to late starts falls.</p></div></div>
+    <div class="vrow"><span class="n">4</span><div><b>Control &amp; accountability</b><p>One live picture across HR, operations, and management — with driver performance and a full audit trail on the record.</p></div></div>
+  </div>
+
+  <div class="cta">
+    <h3>Let's turn transportation from a daily loss into a daily advantage.</h3>
+    <p>Start with a focused pilot on a single route or branch — we prove the value on your ground before any scale-up. A precise ROI model, built on your figures, follows the Discovery session.</p>
+    <span class="step">Next step → Book a 45-minute Discovery session</span>
+  </div>
+
+  <div class="foot"><span>03 · The value · House Lords for Custom Programs</span><span>Kout Food Group · Confidential</span></div>
+</section>
+
+</body>
+</html>

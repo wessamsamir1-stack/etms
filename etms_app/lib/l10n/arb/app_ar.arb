@@ -1,0 +1,37 @@
+{
+  "@@locale": "ar",
+  "appTitle": "إدارة نقل الموظفين",
+
+  "navHome": "الرئيسية",
+  "navTrips": "الرحلات",
+  "navBookings": "الحجوزات",
+  "navProfile": "الملف الشخصي",
+
+  "loginTitle": "تسجيل الدخول",
+  "loginEmail": "البريد الإلكتروني",
+  "loginPassword": "كلمة المرور",
+  "loginSubmit": "دخول",
+  "loginError": "فشل تسجيل الدخول. تحقق من بياناتك.",
+  "logout": "تسجيل الخروج",
+
+  "tripsToday": "رحلات اليوم",
+  "tripStatusScheduled": "مجدولة",
+  "tripStatusAssigned": "مُسندة",
+  "tripStatusInProgress": "جارية",
+  "tripStatusCompleted": "مكتملة",
+  "tripStatusCancelled": "ملغاة",
+  "tripStatusException": "استثناء",
+
+  "seatsLabel": "{taken} / {capacity} مقعد",
+  "syncSynced": "متزامن",
+  "syncPending": "{count} في الانتظار",
+  "syncFailed": "فشلت المزامنة — أعد المحاولة",
+  "offlineBanner": "أنت غير متصل. التغييرات محفوظة وستتم مزامنتها.",
+
+  "commonRetry": "إعادة المحاولة",
+  "commonCancel": "إلغاء",
+  "commonSave": "حفظ",
+  "emptyTitle": "لا يوجد شيء بعد",
+  "errorGeneric": "حدث خطأ ما",
+  "sos": "طوارئ"
+}
