@@ -7,6 +7,21 @@ export async function buildServer(deps: Deps): Promise<FastifyInstance> {
   const app = Fastify({
     logger: deps.config.env !== 'test',
     genReqId: () => `req_${Math.random().toString(36).slice(2, 12)}`,
+    // Reject request bodies larger than 1MB.
+    bodyLimit: 1024 * 1024,
+  });
+
+  // Baseline security headers on every response. HSTS is only sent in
+  // production (over HTTPS) to avoid breaking plain-HTTP local development.
+  const isProduction = deps.config.env === 'production';
+  app.addHook('onRequest', async (_req, reply) => {
+    reply.header('x-content-type-options', 'nosniff');
+    reply.header('x-frame-options', 'DENY');
+    reply.header('referrer-policy', 'no-referrer');
+    reply.header('cross-origin-resource-policy', 'same-origin');
+    if (isProduction) {
+      reply.header('strict-transport-security', 'max-age=31536000; includeSubDomains');
+    }
   });
 
   // CORS for the web dashboard (Bearer-token auth, no cookies). Off unless

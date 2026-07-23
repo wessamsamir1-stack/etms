@@ -115,7 +115,7 @@ export async function registerSsoRoutes(app: FastifyInstance, deps: Deps): Promi
       clientId: cfg.client_id, redirectUri: cfg.redirect_uri, state,
       codeChallenge: codeChallengeS256(verifier), nonce,
     });
-    return reply.redirect(302, url);
+    return reply.redirect(url, 302);
   });
 
   // ---- Finish the flow: verify id_token → mint our session -----------------
@@ -194,7 +194,7 @@ export async function registerSsoRoutes(app: FastifyInstance, deps: Deps): Promi
     if (st.redirect_to) {
       const u = new URL(st.redirect_to);
       u.hash = `access_token=${session.access_token}&refresh_token=${session.refresh_token}`;
-      return reply.redirect(302, u.toString());
+      return reply.redirect(u.toString(), 302);
     }
     return body;
   });
