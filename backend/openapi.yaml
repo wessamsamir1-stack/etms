@@ -104,6 +104,17 @@ paths:
     post:
       summary: Create a trip
       responses: { "201": { description: Created } }
+  /v1/driver/trips:
+    get:
+      summary: Trips assigned to the calling driver (driver app "Today" screen)
+      description: >
+        Scoped to the driver record linked to the caller; a caller with no driver
+        record gets an empty list. `today` resolves in the tenant's timezone.
+      parameters:
+        - name: date
+          in: query
+          schema: { type: string, default: today, example: "2026-07-24" }
+      responses: { "200": { description: Trips for the service date } }
   /v1/trips/{id}/assign:
     post:
       summary: Dispatch — assign vehicle + driver (validates capacity & driver state)

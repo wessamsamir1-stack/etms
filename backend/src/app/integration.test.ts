@@ -407,6 +407,79 @@ test('dispatch + lifecycle: verify driver → assign → start → complete', op
   assert.equal(done.json().data.status, 'completed');
 });
 
+test("driver trips: scoped to the caller's own driver record and service date", opts, async () => {
+  const session = (await login('admin@acme.com', 'Passw0rd!')).json();
+  const H = { authorization: `Bearer ${session.access_token}` };
+  const post = (url: string, payload: Record<string, unknown>) =>
+    app.inject({ method: 'POST', url, headers: H, payload });
+  const get = (url: string) => app.inject({ method: 'GET', url, headers: H });
+
+  // Detach any driver record an earlier run linked to this user, so the
+  // "caller is not a driver" assertion below is deterministic.
+  const linked = (await get('/v1/drivers')).json().data as Array<{
+    id: string;
+    user_id: string | null;
+  }>;
+  for (const d of linked.filter((d) => d.user_id === session.user.id)) {
+    await app.inject({ method: 'DELETE', url: `/v1/drivers/${d.id}`, headers: H });
+  }
+
+  // A caller with no driver record gets an empty list, not an error — this feeds
+  // the home screen every role lands on.
+  const notADriver = await get('/v1/driver/trips?date=2026-07-21');
+  assert.equal(notADriver.statusCode, 200);
+  assert.deepEqual(notADriver.json().data, []);
+
+  const me = (
+    await post('/v1/drivers', {
+      full_name: 'Me',
+      user_id: session.user.id,
+      verification_status: 'verified',
+      availability: 'available',
+    })
+  ).json().data.id;
+  // A second record for the same user: `driver.user_id` has no unique
+  // constraint, and trips under either record are the caller's.
+  const meAlso = (
+    await post('/v1/drivers', {
+      full_name: 'Me (vendor record)',
+      user_id: session.user.id,
+      verification_status: 'verified',
+      availability: 'available',
+    })
+  ).json().data.id;
+  const other = (
+    await post('/v1/drivers', {
+      full_name: 'Someone else',
+      verification_status: 'verified',
+      availability: 'available',
+    })
+  ).json().data.id;
+  const vehA = (await post('/v1/vehicles', { plate_no: 'DRV-A', capacity: 10, status: 'active' })).json().data.id;
+  const vehB = (await post('/v1/vehicles', { plate_no: 'DRV-B', capacity: 10, status: 'active' })).json().data.id;
+
+  const mine = (await post('/v1/trips', { service_date: '2026-07-21', direction: 'inbound' })).json().data.id;
+  const mineToo = (await post('/v1/trips', { service_date: '2026-07-21', direction: 'outbound' })).json().data.id;
+  const theirs = (await post('/v1/trips', { service_date: '2026-07-21', direction: 'inbound' })).json().data.id;
+  const nextDay = (await post('/v1/trips', { service_date: '2026-07-22', direction: 'inbound' })).json().data.id;
+
+  assert.equal((await post(`/v1/trips/${mine}/assign`, { vehicleId: vehA, driverId: me })).statusCode, 200);
+  assert.equal((await post(`/v1/trips/${mineToo}/assign`, { vehicleId: vehA, driverId: meAlso })).statusCode, 200);
+  assert.equal((await post(`/v1/trips/${theirs}/assign`, { vehicleId: vehB, driverId: other })).statusCode, 200);
+  assert.equal((await post(`/v1/trips/${nextDay}/assign`, { vehicleId: vehA, driverId: me })).statusCode, 200);
+
+  // Both of my trips, neither the other driver's nor the next day's.
+  const res = await get('/v1/driver/trips?date=2026-07-21');
+  assert.equal(res.statusCode, 200);
+  const data = res.json().data as Array<{ id: string; service_date: string; status: string }>;
+  assert.deepEqual([...data.map((t) => t.id)].sort(), [mine, mineToo].sort());
+  assert.equal(data[0]?.service_date, '2026-07-21');
+  assert.equal(data[0]?.status, 'assigned');
+
+  // An unparseable date is rejected rather than silently treated as today.
+  assert.equal((await get('/v1/driver/trips?date=21-07-2026')).statusCode, 422);
+});
+
 test('tracking: GPS ping updates last position; SOS incident lifecycle', opts, async () => {
   const token = (await login('admin@acme.com', 'Passw0rd!')).json().access_token as string;
   const H = { authorization: `Bearer ${token}` };

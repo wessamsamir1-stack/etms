@@ -45,6 +45,60 @@ export async function registerTripRoutes(app: FastifyInstance, deps: Deps): Prom
     return { data: rows.rows[0] };
   });
 
+  // The driver app's "Today" screen (etms_app TripRemoteDataSource.fetchToday):
+  // the trips assigned to the driver record linked to the caller.
+  //
+  // `date` is 'today' (the default) or an ISO YYYY-MM-DD. 'today' resolves in the
+  // tenant's own timezone, not the server's, so an early/late shift still reads
+  // the service date the roster was planned against.
+  app.get('/v1/driver/trips', { preHandler: [auth, requirePermission('trip.read')] }, async (req) => {
+    const q = parse(
+      z.object({
+        date: z
+          .union([z.literal('today'), z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'expected YYYY-MM-DD')])
+          .default('today'),
+      }),
+      req.query,
+    );
+    const p = getPrincipal(req);
+
+    return requireDb().withTenant(p.tenantId, p.userId, async (c) => {
+      // Resolved in its own statement rather than a CASE, so the 'today' literal
+      // is never fed to a ::date cast.
+      let serviceDate = q.date;
+      if (q.date === 'today') {
+        const row = (
+          await c.query(
+            `SELECT to_char((now() AT TIME ZONE coalesce(default_timezone, 'UTC'))::date, 'YYYY-MM-DD') AS d
+             FROM tenant WHERE id = app_current_tenant()`,
+          )
+        ).rows[0];
+        if (!row) throw new ApiError(404, 'NOT_FOUND', 'Tenant not found');
+        serviceDate = row.d;
+      }
+
+      // Matched against every driver record linked to the caller — `driver.user_id`
+      // carries no unique constraint, so picking a single one would be arbitrary.
+      // Unlike the driver *write* endpoints, a caller with no driver record is not
+      // an error: the subquery is simply empty, and an admin or rider legitimately
+      // has no trips of their own on the home screen every role lands on.
+      const rows = await c.query(
+        `SELECT t.id,
+                to_char(t.service_date, 'YYYY-MM-DD') AS service_date,
+                t.direction, t.status, t.seats_taken, t.capacity, t.planned_start,
+                r.name AS route_name
+         FROM trip t
+         JOIN assignment a ON a.trip_id = t.id
+         LEFT JOIN route r ON r.id = t.route_id
+         WHERE t.service_date = $2::date
+           AND a.driver_id IN (SELECT id FROM driver WHERE user_id = $1 AND deleted_at IS NULL)
+         ORDER BY t.planned_start NULLS LAST, t.created_at`,
+        [p.userId, serviceDate],
+      );
+      return { data: rows.rows };
+    });
+  });
+
   // Dispatch: assign a vehicle + driver, validating capacity and driver state.
   app.post('/v1/trips/:id/assign', { preHandler: [auth, requirePermission('trip.dispatch')] }, async (req) => {
     const { id } = parse(uuid, req.params);
