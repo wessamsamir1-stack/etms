@@ -4,6 +4,7 @@ import type { FastifyInstance } from 'fastify';
 import { buildServer } from './server';
 import { Db } from './db/pool';
 import { generateTotp } from '../util/totp';
+import { signJwt } from '../util/jwt';
 import { hashPassword } from '../util/password';
 
 // Live end-to-end tests — run only when a seeded database is provided:
@@ -478,6 +479,24 @@ test("driver trips: scoped to the caller's own driver record and service date", 
 
   // An unparseable date is rejected rather than silently treated as today.
   assert.equal((await get('/v1/driver/trips?date=21-07-2026')).statusCode, 422);
+
+  // A well-formed token for a tenant RLS cannot see is a bad credential, not a
+  // missing resource — 401, matching the rest of the API.
+  const strayTenant = signJwt(
+    {
+      sub: session.user.id,
+      tenant_id: '00000000-0000-4000-8000-00000000dead',
+      permissions: ['trip.read'],
+      exp: Math.floor(Date.now() / 1000) + 600,
+    },
+    config.jwtSecret,
+  );
+  const stray = await app.inject({
+    method: 'GET',
+    url: '/v1/driver/trips?date=today',
+    headers: { authorization: `Bearer ${strayTenant}` },
+  });
+  assert.equal(stray.statusCode, 401);
 });
 
 test('tracking: GPS ping updates last position; SOS incident lifecycle', opts, async () => {

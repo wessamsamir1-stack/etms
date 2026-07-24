@@ -73,7 +73,13 @@ export async function registerTripRoutes(app: FastifyInstance, deps: Deps): Prom
              FROM tenant WHERE id = app_current_tenant()`,
           )
         ).rows[0];
-        if (!row) throw new ApiError(404, 'NOT_FOUND', 'Tenant not found');
+        // The token carries a tenant that RLS cannot see — it was deleted, or the
+        // token outlived the database it was minted against. That is a bad
+        // credential, not a missing resource, so it matches the 401 the rest of
+        // the API returns rather than a 404.
+        if (!row) {
+          throw new ApiError(401, 'UNAUTHENTICATED', 'Token references an unknown tenant');
+        }
         serviceDate = row.d;
       }
 
