@@ -30,7 +30,13 @@ export async function buildServer(deps: Deps): Promise<FastifyInstance> {
   if (cors) {
     app.addHook('onRequest', async (req, reply) => {
       reply.header('access-control-allow-origin', cors);
-      reply.header('access-control-allow-headers', 'authorization,content-type');
+      // Must cover every non-safelisted header the clients send, or the browser
+      // fails the preflight check and never issues the real request.
+      // See etms_app AppConstants.hTenant / hRequestId.
+      reply.header(
+        'access-control-allow-headers',
+        'authorization,content-type,x-tenant-id,x-request-id',
+      );
       reply.header('access-control-allow-methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
       reply.header('vary', 'origin');
       if (req.method === 'OPTIONS') reply.code(204).send();

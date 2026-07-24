@@ -49,7 +49,9 @@ services:
         condition: service_completed_successfully
     environment:
       PORT: 8080
-      NODE_ENV: production
+      # Defaults to production; override to `development` in backend/.env for a
+      # local run (the prod guards reject CORS_ORIGIN='*' and default secrets).
+      NODE_ENV: ${NODE_ENV:-production}
       # Connect as the RLS-enforced login role (NOT the postgres superuser).
       DATABASE_URL: postgres://etms_app_login:${APP_DB_PASSWORD:-app-dev-pass}@db:5432/etms
       JWT_SECRET: ${JWT_SECRET:-dev-jwt-secret}
@@ -71,7 +73,7 @@ services:
       migrate:
         condition: service_completed_successfully
     environment:
-      NODE_ENV: production
+      NODE_ENV: ${NODE_ENV:-production}
       WORKER_DATABASE_URL: postgres://etms_platform_login:${PLATFORM_DB_PASSWORD:-platform-dev-pass}@db:5432/etms
       WORKER_INTERVAL_MS: ${WORKER_INTERVAL_MS:-2000}
     command: sh -c "node dist/scripts/notification-worker.js"
