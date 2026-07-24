@@ -81,9 +81,46 @@ npm run build          # tsc → dist/
 npm test               # unit + integration tests
 npm run migrate        # apply db/migrations idempotently (admin creds)
 npm start              # needs DATABASE_URL + secrets (see .env.example)
-# or the whole stack (DB → migrate + create app role → API as that role):
-docker compose -f docker-compose.yml up --build   # deploy guide: ../docs/etms/12-deployment.md
 ```
+
+### The whole stack locally (DB → migrate + roles + seed → API + worker)
+
+Compose reads `backend/.env`, which is gitignored — create it from the template
+first. The template's `NODE_ENV=development` matters here: the api/worker services
+default to `production`, and the guards in `src/config.ts` reject `CORS_ORIGIN='*'`
+and the default JWT/QR secrets in that mode, so the container would exit at boot.
+
+```bash
+cp .env.example .env          # gitignored; keep NODE_ENV=development for local runs
+docker compose -f docker-compose.yml up --build -d
+curl localhost:8080/health    # {"status":"ok","db":"ok"} once migrate has finished
+```
+
+`migrate` runs once and exits: it applies `db/migrations`, creates the RLS-enforced
+app login role and the BYPASSRLS platform role, then seeds tenant `acme` with
+`admin@acme.com` / `Passw0rd!` and platform admin `root@etms.app` / `Platform0wner!`.
+
+To point the Flutter clients ([`../etms_app`](../etms_app)) at it — `CORS_ORIGIN=*`
+covers the dev origin, and `TENANT_SLUG` is the tenant the build authenticates against:
+
+```bash
+cd ../etms_app
+flutter run -d chrome -t lib/main_development.dart \
+  --dart-define=API_BASE_URL=http://localhost:8080/v1 \
+  --dart-define=TENANT_SLUG=acme
+```
+
+Deploy guide: [`../docs/etms/12-deployment.md`](../docs/etms/12-deployment.md).
+
+> The live-DB integration tests are **not idempotent** — they create fixtures with
+> unique constraints (plate numbers, emails), so a second run against the same
+> database fails on collisions. Recreate the volume between runs:
+> ```bash
+> docker compose -f docker-compose.yml down -v && docker compose -f docker-compose.yml up -d
+> docker compose -f docker-compose.yml exec -T \
+>   -e TEST_DATABASE_URL=postgres://etms_app_login:app-dev-pass@db:5432/etms \
+>   api node --test 'dist/app/integration.test.js'
+> ```
 
 ## Login & token minting
 `POST /v1/auth/login {tenantSlug,email,password}` verifies the scrypt password hash and
