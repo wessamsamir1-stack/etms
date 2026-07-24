@@ -56,6 +56,16 @@ function resolveSecret(
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   const nodeEnv = env.NODE_ENV ?? 'development';
   const isProduction = nodeEnv === 'production';
+
+  const corsOrigin = env.CORS_ORIGIN;
+  // A wildcard origin is a dev/test convenience only — in production it would let any
+  // site drive the dashboard API with the caller's credentials. Fail at boot instead.
+  if (isProduction && corsOrigin === '*') {
+    throw new Error(
+      "CORS_ORIGIN must not be '*' in production — set the exact dashboard origin.",
+    );
+  }
+
   return {
     port: Number(env.PORT ?? 8080),
     databaseUrl: env.DATABASE_URL,
@@ -63,7 +73,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     jwtSecret: resolveSecret('JWT_SECRET', env.JWT_SECRET, DEFAULT_JWT_SECRET, isProduction),
     qrSecret: resolveSecret('QR_SECRET', env.QR_SECRET, DEFAULT_QR_SECRET, isProduction),
     env: nodeEnv,
-    corsOrigin: env.CORS_ORIGIN,
+    corsOrigin,
     fieldEncryptionKeys: env.FIELD_ENCRYPTION_KEYS,
   };
 }

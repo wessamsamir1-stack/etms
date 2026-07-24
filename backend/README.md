@@ -115,6 +115,18 @@ client → POST /v1/auth/login → JWT{sub,tenant_id,permissions[]}
   - A real bug was found and fixed: transaction-local `set_config` needs an explicit
     transaction, else the tenant context is lost under autocommit → `app/db/pool.ts`.
 
+## Release hardening
+- **CORS:** `CORS_ORIGIN` must be the exact dashboard origin in production — `'*'` is
+  rejected at boot (`src/config.ts`) and allowed only in dev/test.
+- **Flutter release builds** ([`../etms_app`](../etms_app)) must be obfuscated, with the
+  debug symbols kept out of the shipped binary so crashes stay de-obfuscatable:
+  ```bash
+  flutter build apk --obfuscate --split-debug-info=build/symbols
+  flutter build appbundle --obfuscate --split-debug-info=build/symbols
+  ```
+  Archive `build/symbols` alongside each release — without it, obfuscated stack traces
+  cannot be symbolicated.
+
 ## Notes / next
 - Notification `preview` renders + limit-checks; wiring real SMS/WhatsApp/email providers
   is a `ChannelProvider` implementation + a queue/worker (interface already in place).
