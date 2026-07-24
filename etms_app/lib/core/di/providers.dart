@@ -3,6 +3,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../features/auth/presentation/providers/auth_providers.dart';
 import '../backend/backend_client.dart';
 import '../config/app_config.dart';
 import '../constants/app_constants.dart';
@@ -55,6 +56,10 @@ final outboxDaoProvider = Provider<OutboxDao>((ref) {
 final apiClientProvider = Provider<ApiClient>((ref) {
   final config = ref.watch(appConfigProvider);
   final storage = ref.watch(secureStorageProvider);
+  // Rebind the client to the signed-in identity. Everything that reads the API
+  // goes through here, so a login/logout invalidates the whole downstream graph
+  // and screens refetch instead of showing the previous session's data.
+  ref.watch(sessionScopeProvider);
 
   // On 401, rotate the backend refresh token via /v1/auth/refresh (a bare Dio,
   // no interceptor, to avoid a refresh loop).

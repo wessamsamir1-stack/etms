@@ -34,3 +34,14 @@ final authStateChangesProvider = StreamProvider<User?>(
 final currentUserProvider = Provider<User?>(
   (ref) => ref.watch(authStateChangesProvider).valueOrNull,
 );
+
+/// Identity of the signed-in session — `''` when signed out.
+///
+/// [apiClientProvider] watches this, so signing in or out rebuilds the API
+/// client and, transitively, every provider that reads through it. Without that
+/// the one-shot fetches (trips, dashboard KPIs, my rides, …) would keep serving
+/// the previous session's result until a full app restart.
+final sessionScopeProvider = Provider<String>((ref) {
+  final user = ref.watch(currentUserProvider);
+  return user == null ? '' : '${user.tenantId}:${user.id}';
+});
