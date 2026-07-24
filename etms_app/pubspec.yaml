@@ -46,7 +46,7 @@ dependencies:
 
   # Utilities
   equatable: ^2.0.5
-  intl: ^0.20.2
+  intl: ^0.19.0 # pinned by flutter_localizations (Flutter 3.24.x); no direct use in lib/
   logger: ^2.4.0
 
 dev_dependencies:

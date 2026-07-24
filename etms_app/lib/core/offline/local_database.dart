@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
@@ -12,6 +13,12 @@ class LocalDatabase {
 
   static const _fileName = 'etms.db';
   static const _version = 1;
+
+  /// `sqflite` and `path_provider` have no web implementation. On web the app
+  /// runs without on-device persistence: the outbox and caches fall back to
+  /// in-memory implementations (see `outboxDaoProvider`), so a page reload
+  /// drops anything not yet synced. The admin dashboard is online-only anyway.
+  static bool get isSupported => !kIsWeb;
 
   static Future<LocalDatabase> open() async {
     final dir = await getApplicationDocumentsDirectory();

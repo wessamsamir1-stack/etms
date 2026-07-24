@@ -13,9 +13,12 @@ final _tripRemoteProvider = Provider<TripRemoteDataSource>(
   (ref) => TripRemoteDataSourceImpl(ref.watch(apiClientProvider)),
 );
 
-final _tripLocalProvider = Provider<TripLocalDataSource>(
-  (ref) => TripLocalDataSourceImpl(ref.watch(localDatabaseProvider).db),
-);
+final _tripLocalProvider = Provider<TripLocalDataSource>((ref) {
+  final db = ref.watch(localDatabaseProvider);
+  return db == null
+      ? NoopTripLocalDataSource()
+      : TripLocalDataSourceImpl(db.db);
+});
 
 final tripRepositoryProvider = Provider<TripRepository>(
   (ref) => TripRepositoryImpl(

@@ -35,7 +35,7 @@ class AppConfig {
         String.fromEnvironment('BACKEND', defaultValue: 'supabase');
     return AppConfig(
       flavor: flavor,
-      apiBaseUrl: String.fromEnvironment(
+      apiBaseUrl: const String.fromEnvironment(
         'API_BASE_URL',
         defaultValue: 'https://api.dev.etms.app/v1',
       ),

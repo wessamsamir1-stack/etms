@@ -46,3 +46,13 @@ class TripLocalDataSourceImpl implements TripLocalDataSource {
     await batch.commit(noResult: true);
   }
 }
+
+/// Used where SQLite is unavailable (web): reads always miss, writes are
+/// dropped, so the repository falls straight through to the remote source.
+class NoopTripLocalDataSource implements TripLocalDataSource {
+  @override
+  Future<List<TripDto>> readCached() async => const [];
+
+  @override
+  Future<void> cache(List<TripDto> trips) async {}
+}

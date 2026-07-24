@@ -9,7 +9,6 @@ import 'core/backend/supabase/supabase_backend_client.dart';
 import 'core/config/app_config.dart';
 import 'core/di/providers.dart';
 import 'core/offline/local_database.dart';
-import 'core/offline/sync_engine.dart';
 import 'core/utils/logger.dart';
 
 /// Single async composition root shared by every flavor entrypoint.
@@ -33,7 +32,8 @@ Future<void> bootstrap(AppConfig config) async {
   }
 
   final prefs = await SharedPreferences.getInstance();
-  final localDb = await LocalDatabase.open();
+  // No SQLite on web — the graph falls back to in-memory outbox/caches.
+  final localDb = LocalDatabase.isSupported ? await LocalDatabase.open() : null;
 
   FlutterError.onError = (details) =>
       appLogger.e('FlutterError', error: details.exception, stackTrace: details.stack);
@@ -42,7 +42,7 @@ Future<void> bootstrap(AppConfig config) async {
     overrides: [
       appConfigProvider.overrideWithValue(config),
       sharedPreferencesProvider.overrideWithValue(prefs),
-      localDatabaseProvider.overrideWithValue(localDb),
+      if (localDb != null) localDatabaseProvider.overrideWithValue(localDb),
       if (backend != null) backendClientProvider.overrideWithValue(backend),
     ],
   );

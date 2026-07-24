@@ -31,9 +31,10 @@ final sharedPreferencesProvider = Provider<SharedPreferences>(
 final backendClientProvider = Provider<BackendClient>(
   (_) => throw UnimplementedError('backendClientProvider must be overridden'),
 );
-final localDatabaseProvider = Provider<LocalDatabase>(
-  (_) => throw UnimplementedError('localDatabaseProvider must be overridden'),
-);
+/// Null where on-device SQLite is unavailable (web) — see
+/// [LocalDatabase.isSupported]. Consumers must fall back to an in-memory
+/// implementation rather than assume persistence.
+final localDatabaseProvider = Provider<LocalDatabase?>((_) => null);
 
 // ---- Derived singletons ----------------------------------------------------
 final secureStorageProvider =
@@ -46,8 +47,10 @@ final keyValueStoreProvider = Provider<KeyValueStore>(
 final networkInfoProvider =
     Provider<NetworkInfo>((_) => NetworkInfoImpl(Connectivity()));
 
-final outboxDaoProvider =
-    Provider<OutboxDao>((ref) => OutboxDao(ref.watch(localDatabaseProvider).db));
+final outboxDaoProvider = Provider<OutboxDao>((ref) {
+  final db = ref.watch(localDatabaseProvider);
+  return db == null ? MemoryOutboxDao() : SqliteOutboxDao(db.db);
+});
 
 final apiClientProvider = Provider<ApiClient>((ref) {
   final config = ref.watch(appConfigProvider);
