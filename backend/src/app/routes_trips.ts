@@ -67,19 +67,17 @@ export async function registerTripRoutes(app: FastifyInstance, deps: Deps): Prom
       // is never fed to a ::date cast.
       let serviceDate = q.date;
       if (q.date === 'today') {
+        // A scalar subquery, so this always yields exactly one row. The tenant is
+        // guaranteed visible by Db.withTenant, which rejects an unknown one with
+        // a 401 before this runs; the coalesce is just belt-and-braces.
         const row = (
           await c.query(
-            `SELECT to_char((now() AT TIME ZONE coalesce(default_timezone, 'UTC'))::date, 'YYYY-MM-DD') AS d
-             FROM tenant WHERE id = app_current_tenant()`,
+            `SELECT to_char(
+               (now() AT TIME ZONE coalesce(
+                 (SELECT default_timezone FROM tenant WHERE id = app_current_tenant()), 'UTC'
+               ))::date, 'YYYY-MM-DD') AS d`,
           )
         ).rows[0];
-        // The token carries a tenant that RLS cannot see — it was deleted, or the
-        // token outlived the database it was minted against. That is a bad
-        // credential, not a missing resource, so it matches the 401 the rest of
-        // the API returns rather than a 404.
-        if (!row) {
-          throw new ApiError(401, 'UNAUTHENTICATED', 'Token references an unknown tenant');
-        }
         serviceDate = row.d;
       }
 

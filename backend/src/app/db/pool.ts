@@ -1,4 +1,5 @@
 import { Client, Pool, PoolClient } from 'pg';
+import { ApiError } from '../middleware/context';
 
 /**
  * Postgres access with per-request tenant context. Every query runs inside a
@@ -35,6 +36,12 @@ export class Db {
    * Wrapped in a transaction so the transaction-local `set_config` context
    * persists across all queries in `fn` and is cleanly reset on release —
    * critical with a pooled connection (no tenant context leaks between requests).
+   *
+   * Rejects with 401 when the tenant is not visible under RLS — the token names
+   * a tenant that was deleted, or outlived the database it was minted against.
+   * Checked here rather than per route so the whole tenant-scoped API answers
+   * the same way: without it each route degrades differently, returning empty
+   * lists or nulls as if the caller legitimately had no data.
    */
   async withTenant<T>(
     tenantId: string,
@@ -50,6 +57,13 @@ export class Db {
         'app.user_id',
         userId,
       ]);
+      // Costs one indexed lookup per tenant-scoped request. Must be its own
+      // statement: the RLS policy on `tenant` reads app_current_tenant(), so it
+      // cannot share a statement with the set_config that establishes it.
+      const known = await client.query('SELECT 1 FROM tenant WHERE id = app_current_tenant()');
+      if (known.rowCount === 0) {
+        throw new ApiError(401, 'UNAUTHENTICATED', 'Token references an unknown tenant');
+      }
       const result = await fn(client);
       await client.query('COMMIT');
       return result;

@@ -480,23 +480,30 @@ test("driver trips: scoped to the caller's own driver record and service date", 
   // An unparseable date is rejected rather than silently treated as today.
   assert.equal((await get('/v1/driver/trips?date=21-07-2026')).statusCode, 422);
 
-  // A well-formed token for a tenant RLS cannot see is a bad credential, not a
-  // missing resource — 401, matching the rest of the API.
-  const strayTenant = signJwt(
+  assert.equal((await get('/v1/driver/trips?date=today')).statusCode, 200);
+});
+
+test('a token naming an unknown tenant is rejected the same way on every route', opts, async () => {
+  const session = (await login('admin@acme.com', 'Passw0rd!')).json();
+  // Well-formed and correctly signed, but the tenant is not visible under RLS —
+  // a bad credential, not a caller who happens to have no data. Db.withTenant
+  // rejects it centrally, so routes cannot drift apart on this.
+  const stray = signJwt(
     {
       sub: session.user.id,
       tenant_id: '00000000-0000-4000-8000-00000000dead',
-      permissions: ['trip.read'],
+      permissions: ['trip.read', 'tenant.read', 'site.read', 'vehicle.read'],
       exp: Math.floor(Date.now() / 1000) + 600,
     },
     config.jwtSecret,
   );
-  const stray = await app.inject({
-    method: 'GET',
-    url: '/v1/driver/trips?date=today',
-    headers: { authorization: `Bearer ${strayTenant}` },
-  });
-  assert.equal(stray.statusCode, 401);
+  const H = { authorization: `Bearer ${stray}` };
+
+  for (const url of ['/v1/driver/trips?date=today', '/v1/branding', '/v1/sites', '/v1/vehicles']) {
+    const res = await app.inject({ method: 'GET', url, headers: H });
+    assert.equal(res.statusCode, 401, `${url} should be 401, got ${res.statusCode}`);
+    assert.equal(res.json().code, 'UNAUTHENTICATED', `${url} code`);
+  }
 });
 
 test('tracking: GPS ping updates last position; SOS incident lifecycle', opts, async () => {
