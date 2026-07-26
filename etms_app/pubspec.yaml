@@ -25,7 +25,7 @@ dependencies:
   flutter_secure_storage: ^9.2.2
   fpdart: ^1.1.0 # functional error handling (Either<Failure, T>)
   go_router: ^14.2.0 # routing
-  intl: ^0.19.0 # pinned by flutter_localizations (Flutter 3.24.x); no direct use in lib/
+  intl: ^0.20.2 # pinned by flutter_localizations; no direct use in lib/
   logger: ^2.4.0
   path: ^1.9.0
   path_provider: ^2.1.4

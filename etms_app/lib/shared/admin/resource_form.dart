@@ -145,7 +145,7 @@ class _ResourceFormDialogState extends ConsumerState<ResourceFormDialog> {
         );
       case FieldType.select:
         return DropdownButtonFormField<String>(
-          value: _values[f.name] as String?,
+          initialValue: _values[f.name] as String?,
           decoration: InputDecoration(labelText: f.label),
           items: [
             for (final (val, label) in f.options)
@@ -158,7 +158,7 @@ class _ResourceFormDialogState extends ConsumerState<ResourceFormDialog> {
         final opts = ref.watch(referenceOptionsProvider(
             (path: f.refResource!, label: f.refLabel),),);
         return DropdownButtonFormField<String>(
-          value: _values[f.name] as String?,
+          initialValue: _values[f.name] as String?,
           decoration: InputDecoration(
             labelText: f.label,
             suffixIcon: opts.isLoading
