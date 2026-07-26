@@ -13,6 +13,13 @@ abstract final class AppRoutes {
   static const myRides = '/my/rides';
   static const rateTrip = '/trips'; // /trips/:tripId/rate
   static const lostFound = '/lost-found'; // optional ?tripId=
+  /// Fleet ops: fuel log, traffic violations, and their reports (db V0029).
+  static const fuelLogs = '/fleet/fuel';
+  static const fuelAdd = '/fleet/fuel/add';
+  static const violations = '/fleet/violations';
+  static const violationAdd = '/fleet/violations/add';
+  static const fleetReports = '/fleet/reports';
+
   static String driverTripFor(String tripId) => '$driverTrip/$tripId';
   static String myTripFor(String tripId) => '$myTrip/$tripId';
   static String rateTripFor(String tripId) => '$rateTrip/$tripId/rate';
