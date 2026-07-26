@@ -131,15 +131,15 @@ class FuelReport {
   final List<FuelVehicleRow> perVehicle;
 
   factory FuelReport.fromJson(Map<String, dynamic> j) {
-    final data = (j['data'] as Map<String, dynamic>?) ?? j;
-    final totals = (data['totals'] as Map<String, dynamic>?) ?? const {};
+    final data = _map(j['data']) ?? j;
+    final totals = _map(data['totals']) ?? const <String, dynamic>{};
     return FuelReport(
       fills: (totals['fills'] as num?)?.toInt() ?? 0,
       liters: _num(totals['liters']),
       cost: _num(totals['cost']),
       perVehicle: [
         for (final r in (data['perVehicle'] as List? ?? const []))
-          FuelVehicleRow.fromJson(r as Map<String, dynamic>),
+          FuelVehicleRow.fromJson((r as Map).cast<String, dynamic>()),
       ],
     );
   }
@@ -191,8 +191,8 @@ class ViolationsReport {
   final List<({String driver, int violations, double amount})> perDriver;
 
   factory ViolationsReport.fromJson(Map<String, dynamic> j) {
-    final data = (j['data'] as Map<String, dynamic>?) ?? j;
-    final totals = (data['totals'] as Map<String, dynamic>?) ?? const {};
+    final data = _map(j['data']) ?? j;
+    final totals = _map(data['totals']) ?? const <String, dynamic>{};
     return ViolationsReport(
       violations: (totals['violations'] as num?)?.toInt() ?? 0,
       pending: (totals['pending'] as num?)?.toInt() ?? 0,
@@ -238,3 +238,7 @@ class DriverOption {
 
 double _num(Object? v) => v is num ? v.toDouble() : double.tryParse('$v') ?? 0;
 DateTime? _dt(Object? v) => v is String ? DateTime.tryParse(v) : null;
+
+/// Tolerant map access: json-decoded maps are `Map<String, dynamic>` but
+/// literals (e.g. in tests) may be `Map<dynamic, dynamic>`.
+Map<String, dynamic>? _map(Object? v) => v is Map ? v.cast<String, dynamic>() : null;
