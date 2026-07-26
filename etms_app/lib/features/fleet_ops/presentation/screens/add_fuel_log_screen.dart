@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../data/fleet_ops_models.dart';
 import '../providers/fleet_ops_providers.dart';
 
 /// Record a fuel fill (POST /v1/fuel-logs). The driver is optional — a driver
