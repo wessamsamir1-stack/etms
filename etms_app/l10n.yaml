@@ -1,9 +1,6 @@
 arb-dir: lib/l10n/arb
 template-arb-file: app_en.arb
 output-dir: lib/l10n/generated
-# Required for output-dir to be honoured; otherwise gen-l10n emits a synthetic
-# package under .dart_tool/ and the `../l10n/generated/...` imports break.
-synthetic-package: false
 output-localization-file: app_localizations.dart
 output-class: AppLocalizations
 nullable-getter: false

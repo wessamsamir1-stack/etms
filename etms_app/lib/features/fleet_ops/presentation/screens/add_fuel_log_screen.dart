@@ -74,7 +74,7 @@ class _AddFuelLogScreenState extends ConsumerState<AddFuelLogScreen> {
               loading: () => const LinearProgressIndicator(),
               error: (e, _) => Text(ar ? 'تعذّر تحميل المركبات' : 'Could not load vehicles'),
               data: (list) => DropdownButtonFormField<String>(
-                value: _vehicleId,
+                initialValue: _vehicleId,
                 decoration: InputDecoration(labelText: ar ? 'المركبة' : 'Vehicle'),
                 items: [
                   for (final v in list)
@@ -86,7 +86,7 @@ class _AddFuelLogScreenState extends ConsumerState<AddFuelLogScreen> {
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
-              value: _fuelType,
+              initialValue: _fuelType,
               decoration: InputDecoration(labelText: ar ? 'نوع الوقود' : 'Fuel type'),
               items: [
                 DropdownMenuItem(value: 'petrol_91', child: Text(ar ? 'بنزين ٩١' : 'Petrol 91')),

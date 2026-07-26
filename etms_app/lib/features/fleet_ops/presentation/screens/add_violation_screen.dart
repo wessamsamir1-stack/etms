@@ -83,7 +83,7 @@ class _AddViolationScreenState extends ConsumerState<AddViolationScreen> {
               loading: () => const LinearProgressIndicator(),
               error: (e, _) => Text(ar ? 'تعذّر تحميل المركبات' : 'Could not load vehicles'),
               data: (list) => DropdownButtonFormField<String>(
-                value: _vehicleId,
+                initialValue: _vehicleId,
                 decoration: InputDecoration(labelText: ar ? 'المركبة' : 'Vehicle'),
                 items: [
                   for (final v in list) DropdownMenuItem(value: v.id, child: Text(v.plateNo)),
@@ -97,7 +97,7 @@ class _AddViolationScreenState extends ConsumerState<AddViolationScreen> {
               loading: () => const SizedBox.shrink(),
               error: (e, _) => const SizedBox.shrink(), // driver stays optional
               data: (list) => DropdownButtonFormField<String>(
-                value: _driverId,
+                initialValue: _driverId,
                 decoration:
                     InputDecoration(labelText: ar ? 'السائق (اختياري)' : 'Driver (optional)'),
                 items: [
@@ -109,7 +109,7 @@ class _AddViolationScreenState extends ConsumerState<AddViolationScreen> {
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
-              value: _type,
+              initialValue: _type,
               decoration: InputDecoration(labelText: ar ? 'نوع المخالفة' : 'Violation type'),
               items: [
                 for (final t in _violationTypes)
