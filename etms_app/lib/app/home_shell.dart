@@ -74,6 +74,27 @@ class _ProfileTab extends ConsumerWidget {
               title: const Text('العربية / English'),
               onTap: () => ref.read(localeControllerProvider.notifier).toggle(),
             ),
+            if (ref.can('fuel.read'))
+              ListTile(
+                leading: const Icon(Icons.local_gas_station_outlined),
+                title: Text(l10n.localeName == 'ar' ? 'سجل البنزين' : 'Fuel log'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => context.push(AppRoutes.fuelLogs),
+              ),
+            if (ref.can('violation.read'))
+              ListTile(
+                leading: const Icon(Icons.receipt_long_outlined),
+                title: Text(l10n.localeName == 'ar' ? 'المخالفات' : 'Violations'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => context.push(AppRoutes.violations),
+              ),
+            if (ref.can('report.operational'))
+              ListTile(
+                leading: const Icon(Icons.insert_chart_outlined),
+                title: Text(l10n.localeName == 'ar' ? 'تقارير الأسطول' : 'Fleet reports'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => context.push(AppRoutes.fleetReports),
+              ),
             if (ref.watch(isAdminUserProvider))
               ListTile(
                 leading: const Icon(Icons.admin_panel_settings_outlined),

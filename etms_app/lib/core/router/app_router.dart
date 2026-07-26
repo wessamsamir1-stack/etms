@@ -11,6 +11,11 @@ import '../../features/commute/presentation/screens/employee_trip_screen.dart';
 import '../../features/commute/presentation/screens/lost_found_screen.dart';
 import '../../features/commute/presentation/screens/my_rides_screen.dart';
 import '../../features/commute/presentation/screens/rating_screen.dart';
+import '../../features/fleet_ops/presentation/screens/add_fuel_log_screen.dart';
+import '../../features/fleet_ops/presentation/screens/add_violation_screen.dart';
+import '../../features/fleet_ops/presentation/screens/fleet_reports_screen.dart';
+import '../../features/fleet_ops/presentation/screens/fuel_logs_screen.dart';
+import '../../features/fleet_ops/presentation/screens/violations_screen.dart';
 import '../access/permissions.dart';
 import 'app_routes.dart';
 
@@ -73,6 +78,31 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: '${AppRoutes.rateTrip}/:tripId/rate',
         name: 'rateTrip',
         builder: (_, state) => RatingScreen(tripId: state.pathParameters['tripId']!),
+      ),
+      GoRoute(
+        path: AppRoutes.fuelLogs,
+        name: 'fuelLogs',
+        builder: (_, __) => const FuelLogsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.fuelAdd,
+        name: 'fuelAdd',
+        builder: (_, __) => const AddFuelLogScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.violations,
+        name: 'violations',
+        builder: (_, __) => const ViolationsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.violationAdd,
+        name: 'violationAdd',
+        builder: (_, __) => const AddViolationScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.fleetReports,
+        name: 'fleetReports',
+        builder: (_, __) => const FleetReportsScreen(),
       ),
       GoRoute(
         path: AppRoutes.lostFound,
