@@ -1,0 +1,49 @@
+name: Build APK
+
+# Builds the Android APK and attaches it to a GitHub (pre)release. Trigger by
+# pushing a tag like `apk-dev-1`, or manually via workflow_dispatch (which
+# mints an `apk-dev-<run number>` tag itself).
+on:
+  push:
+    tags: ['apk-*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apk:
+    name: Android APK (development flavor)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: etms_app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: subosito/flutter-action@v2
+        with:
+          # Keep in sync with .github/workflows/ci.yml.
+          flutter-version: '3.27.4'
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter gen-l10n
+      - run: >
+          flutter build apk --release
+          -t lib/main_development.dart
+          --dart-define=API_BASE_URL=${{ vars.ETMS_API_BASE_URL || 'https://api.dev.etms.app/v1' }}
+      - run: mv build/app/outputs/flutter-apk/app-release.apk build/app/outputs/flutter-apk/etms-dev.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: etms-dev-apk
+          path: etms_app/build/app/outputs/flutter-apk/etms-dev.apk
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_type == 'tag' && github.ref_name || format('apk-dev-{0}', github.run_number) }}
+          target_commitish: ${{ github.sha }}
+          prerelease: true
+          files: etms_app/build/app/outputs/flutter-apk/etms-dev.apk
