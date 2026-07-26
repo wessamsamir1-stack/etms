@@ -73,7 +73,7 @@ class _FormState extends ConsumerState<_Form> {
         'wait_seconds': _wait,
         'notify_before_min': notify,
         'allow_driver_skip': _skip,
-      });
+      },);
       ref.invalidate(_policyProvider);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -99,10 +99,10 @@ class _FormState extends ConsumerState<_Form> {
           padding: const EdgeInsets.all(20),
           children: [
             Text(ar ? 'مدّة انتظار الباص عند نقطة التجمّع' : 'How long the bus waits at a stop',
-                style: Theme.of(context).textTheme.titleMedium),
+                style: Theme.of(context).textTheme.titleMedium,),
             const SizedBox(height: 4),
             Text(ar ? 'ينطبق على كل الشركة (يمكن تجاوزه لكل مسار).' : 'Applies company-wide (a route can override it).',
-                style: Theme.of(context).textTheme.bodySmall),
+                style: Theme.of(context).textTheme.bodySmall,),
             const SizedBox(height: 12),
             Wrap(
               spacing: 8,
@@ -128,7 +128,7 @@ class _FormState extends ConsumerState<_Form> {
                 ),
               ),
               SizedBox(width: 64, child: Text('${_wait}s', textAlign: TextAlign.end)),
-            ]),
+            ],),
             const SizedBox(height: 16),
             TextField(
               controller: _notify,

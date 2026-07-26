@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -38,7 +39,7 @@ class _RatingScreenState extends ConsumerState<RatingScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(ar ? 'شكرًا لتقييمك' : 'Thanks for your rating')),
       );
-      Navigator.of(context).maybePop();
+      unawaited(Navigator.of(context).maybePop());
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

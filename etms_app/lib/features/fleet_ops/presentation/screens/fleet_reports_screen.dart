@@ -48,24 +48,24 @@ class FleetReportsScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 16),
             Text(ar ? 'البنزين' : 'Fuel',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800)),
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),),
             const SizedBox(height: 8),
             fuel.when(
               loading: () => const Padding(
-                  padding: EdgeInsets.all(24), child: Center(child: CircularProgressIndicator())),
+                  padding: EdgeInsets.all(24), child: Center(child: CircularProgressIndicator()),),
               error: (e, _) =>
                   Text(ar ? 'تعذّر تحميل تقرير البنزين' : 'Could not load the fuel report'),
               data: (r) => _FuelSection(report: r, ar: ar),
             ),
             const SizedBox(height: 24),
             Text(ar ? 'المخالفات' : 'Violations',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800)),
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),),
             const SizedBox(height: 8),
             violations.when(
               loading: () => const Padding(
-                  padding: EdgeInsets.all(24), child: Center(child: CircularProgressIndicator())),
+                  padding: EdgeInsets.all(24), child: Center(child: CircularProgressIndicator()),),
               error: (e, _) => Text(
-                  ar ? 'تعذّر تحميل تقرير المخالفات' : 'Could not load the violations report'),
+                  ar ? 'تعذّر تحميل تقرير المخالفات' : 'Could not load the violations report',),
               data: (r) => _ViolationsSection(report: r, ar: ar),
             ),
           ],
@@ -97,9 +97,9 @@ class _StatBox extends StatelessWidget {
               style: Theme.of(context)
                   .textTheme
                   .titleLarge
-                  ?.copyWith(fontWeight: FontWeight.w800, color: color)),
+                  ?.copyWith(fontWeight: FontWeight.w800, color: color),),
           Text(label, style: Theme.of(context).textTheme.labelSmall, textAlign: TextAlign.center),
-        ]),
+        ],),
       ),
     );
   }
@@ -118,16 +118,16 @@ class _FuelSection extends StatelessWidget {
           _StatBox(
               value: '${report.fills}',
               label: ar ? 'تعبئات' : 'Fills',
-              color: Theme.of(context).colorScheme.primary),
+              color: Theme.of(context).colorScheme.primary,),
           _StatBox(
               value: report.liters.toStringAsFixed(1),
               label: ar ? 'لتر' : 'Liters',
-              color: const Color(0xFF1E9E58)),
+              color: const Color(0xFF1E9E58),),
           _StatBox(
               value: report.cost.toStringAsFixed(2),
               label: ar ? 'التكلفة' : 'Cost',
-              color: const Color(0xFFB07708)),
-        ]),
+              color: const Color(0xFFB07708),),
+        ],),
         const SizedBox(height: 8),
         if (report.perVehicle.isEmpty)
           Padding(
@@ -146,9 +146,9 @@ class _FuelSection extends StatelessWidget {
                   '${v.liters.toStringAsFixed(1)} ${ar ? 'لتر' : 'L'}',
                   if (v.km != null) '${v.km} ${ar ? 'كم' : 'km'}',
                   if (v.kmPerLiter != null) '${v.kmPerLiter} ${ar ? 'كم/لتر' : 'km/L'}',
-                ].join(' · ')),
+                ].join(' · '),),
                 trailing: Text(v.cost.toStringAsFixed(2),
-                    style: const TextStyle(fontWeight: FontWeight.w700)),
+                    style: const TextStyle(fontWeight: FontWeight.w700),),
               ),
             ),
       ],
@@ -169,20 +169,20 @@ class _ViolationsSection extends StatelessWidget {
           _StatBox(
               value: '${report.violations}',
               label: ar ? 'مخالفات' : 'Total',
-              color: Theme.of(context).colorScheme.primary),
+              color: Theme.of(context).colorScheme.primary,),
           _StatBox(
               value: '${report.pending}',
               label: ar ? 'قيد السداد' : 'Pending',
-              color: const Color(0xFFE1554E)),
+              color: const Color(0xFFE1554E),),
           _StatBox(
               value: report.unpaidAmount.toStringAsFixed(2),
               label: ar ? 'غير مدفوع' : 'Unpaid',
-              color: const Color(0xFFB07708)),
-        ]),
+              color: const Color(0xFFB07708),),
+        ],),
         const SizedBox(height: 8),
         if (report.byType.isNotEmpty) ...[
           Text(ar ? 'حسب النوع' : 'By type',
-              style: Theme.of(context).textTheme.labelLarge),
+              style: Theme.of(context).textTheme.labelLarge,),
           const SizedBox(height: 4),
           for (final t in report.byType)
             ListTile(
@@ -195,7 +195,7 @@ class _ViolationsSection extends StatelessWidget {
         if (report.perDriver.isNotEmpty) ...[
           const SizedBox(height: 8),
           Text(ar ? 'حسب السائق' : 'By driver',
-              style: Theme.of(context).textTheme.labelLarge),
+              style: Theme.of(context).textTheme.labelLarge,),
           const SizedBox(height: 4),
           for (final d in report.perDriver)
             ListTile(

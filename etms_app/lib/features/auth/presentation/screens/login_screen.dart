@@ -54,7 +54,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text(l10n.loginTitle,
-                        style: Theme.of(context).textTheme.headlineSmall),
+                        style: Theme.of(context).textTheme.headlineSmall,),
                     const SizedBox(height: 24),
                     AppTextField(
                       label: l10n.loginEmail,

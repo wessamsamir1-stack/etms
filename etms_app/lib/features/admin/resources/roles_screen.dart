@@ -84,7 +84,7 @@ class _RolesScreenState extends ConsumerState<RolesScreen> {
                   SizedBox(width: 280, child: master),
                   const VerticalDivider(width: 1),
                   Expanded(child: detail),
-                ])
+                ],)
               : detail;
         },
       ),

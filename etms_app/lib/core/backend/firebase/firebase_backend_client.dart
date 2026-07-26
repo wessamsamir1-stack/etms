@@ -36,7 +36,7 @@ class FirebaseBackendClient implements BackendClient {
   }) async {
     try {
       final cred = await _auth.signInWithEmailAndPassword(
-          email: email, password: password);
+          email: email, password: password,);
       final session = await _map(cred.user);
       if (session == null) throw const AuthException('No session returned');
       return session;
@@ -78,7 +78,7 @@ class FirebaseBackendClient implements BackendClient {
 
   @override
   Future<List<Map<String, dynamic>>> fetch(String resource,
-      {QuerySpec? query}) async {
+      {QuerySpec? query,}) async {
     final snap = await _applied(resource, query).get();
     return snap.docs.map((d) => {...d.data(), 'id': d.id}).toList();
   }
@@ -91,7 +91,7 @@ class FirebaseBackendClient implements BackendClient {
 
   @override
   Future<Map<String, dynamic>> insert(
-      String resource, Map<String, dynamic> data) async {
+      String resource, Map<String, dynamic> data,) async {
     final ref = await _db.collection(resource).add(data);
     final doc = await ref.get();
     return _withId(doc);
@@ -99,7 +99,7 @@ class FirebaseBackendClient implements BackendClient {
 
   @override
   Future<Map<String, dynamic>> update(
-      String resource, String id, Map<String, dynamic> data) async {
+      String resource, String id, Map<String, dynamic> data,) async {
     await _db.collection(resource).doc(id).update(data);
     final doc = await _db.collection(resource).doc(id).get();
     return _withId(doc);

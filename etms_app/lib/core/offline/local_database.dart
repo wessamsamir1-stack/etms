@@ -50,7 +50,7 @@ class LocalDatabase {
       )
     ''');
     await db.execute(
-        'CREATE UNIQUE INDEX ux_outbox_client ON outbox(client_event_id)');
+        'CREATE UNIQUE INDEX ux_outbox_client ON outbox(client_event_id)',);
     await db.execute('CREATE INDEX ix_outbox_status ON outbox(status)');
 
     // Generic read cache: one row per (resource, entity_id) holding JSON so the

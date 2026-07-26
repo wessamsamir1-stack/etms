@@ -30,7 +30,7 @@ class OfflineBanner extends ConsumerWidget {
                     child: Text(
                       context.l10n.offlineBanner,
                       style: TextStyle(
-                          color: scheme.onErrorContainer, fontSize: 12),
+                          color: scheme.onErrorContainer, fontSize: 12,),
                     ),
                   ),
                 ],

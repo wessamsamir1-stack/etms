@@ -12,7 +12,7 @@ class FleetOpsService {
   // Fuel log.
   Future<List<FuelLog>> fuelLogs({String? vehicleId}) async {
     final res = await _api.get<Map<String, dynamic>>('/fuel-logs',
-        query: {if (vehicleId != null) 'vehicle_id': vehicleId});
+        query: {if (vehicleId != null) 'vehicle_id': vehicleId},);
     return [for (final r in (res['data'] as List? ?? const [])) FuelLog.fromJson(r as Map<String, dynamic>)];
   }
 
@@ -35,12 +35,12 @@ class FleetOpsService {
         if (odometerKm != null) 'odometer_km': odometerKm,
         if (station != null && station.isNotEmpty) 'station': station,
         if (notes != null && notes.isNotEmpty) 'notes': notes,
-      });
+      },);
 
   // Violations.
   Future<List<Violation>> violations({ViolationStatus? status}) async {
     final res = await _api.get<Map<String, dynamic>>('/violations',
-        query: {if (status != null) 'status': violationStatusWire(status)});
+        query: {if (status != null) 'status': violationStatusWire(status)},);
     return [for (final r in (res['data'] as List? ?? const [])) Violation.fromJson(r as Map<String, dynamic>)];
   }
 
@@ -63,22 +63,22 @@ class FleetOpsService {
         if (violationNo != null && violationNo.isNotEmpty) 'violation_no': violationNo,
         if (location != null && location.isNotEmpty) 'location': location,
         if (notes != null && notes.isNotEmpty) 'notes': notes,
-      });
+      },);
 
   Future<void> setViolationStatus(String id, ViolationStatus status) =>
       _api.post<Map<String, dynamic>>('/violations/$id/status',
-          body: {'status': violationStatusWire(status)});
+          body: {'status': violationStatusWire(status)},);
 
   // Reports.
   Future<FuelReport> fuelReport(DateTime from, DateTime to) async {
     final res = await _api.get<Map<String, dynamic>>('/reports/fuel',
-        query: {'from': _d(from), 'to': _d(to)});
+        query: {'from': _d(from), 'to': _d(to)},);
     return FuelReport.fromJson(res);
   }
 
   Future<ViolationsReport> violationsReport(DateTime from, DateTime to) async {
     final res = await _api.get<Map<String, dynamic>>('/reports/violations',
-        query: {'from': _d(from), 'to': _d(to)});
+        query: {'from': _d(from), 'to': _d(to)},);
     return ViolationsReport.fromJson(res);
   }
 
@@ -101,11 +101,11 @@ final fleetOpsServiceProvider =
     Provider<FleetOpsService>((ref) => FleetOpsService(ref.watch(apiClientProvider)));
 
 final fuelLogsProvider = FutureProvider<List<FuelLog>>(
-    (ref) => ref.watch(fleetOpsServiceProvider).fuelLogs());
+    (ref) => ref.watch(fleetOpsServiceProvider).fuelLogs(),);
 
 /// Violations, optionally filtered by status (null = all).
 final violationsProvider = FutureProvider.family<List<Violation>, ViolationStatus?>(
-    (ref, status) => ref.watch(fleetOpsServiceProvider).violations(status: status));
+    (ref, status) => ref.watch(fleetOpsServiceProvider).violations(status: status),);
 
 /// Date range used by the reports screen; defaults to the current month.
 final reportRangeProvider = StateProvider<({DateTime from, DateTime to})>((ref) {
@@ -124,7 +124,7 @@ final violationsReportProvider = FutureProvider<ViolationsReport>((ref) {
 });
 
 final vehicleOptionsProvider = FutureProvider<List<VehicleOption>>(
-    (ref) => ref.watch(fleetOpsServiceProvider).vehicles());
+    (ref) => ref.watch(fleetOpsServiceProvider).vehicles(),);
 
 final driverOptionsProvider = FutureProvider<List<DriverOption>>(
-    (ref) => ref.watch(fleetOpsServiceProvider).drivers());
+    (ref) => ref.watch(fleetOpsServiceProvider).drivers(),);

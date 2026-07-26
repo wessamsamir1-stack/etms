@@ -11,48 +11,32 @@ environment:
 # as-is after `flutter pub get`. DTOs hand-write (de)serialization, Riverpod uses
 # the non-generated API, and the offline store uses raw SQL via sqflite.
 dependencies:
+  cloud_firestore: ^5.2.1
+  connectivity_plus: ^6.0.5
+  dio: ^5.5.0 # networking (REST API — see core/network)
+  equatable: ^2.0.5
+  firebase_auth: ^5.1.4
+  firebase_core: ^3.3.0
   flutter:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
-
-  # State management
-  flutter_riverpod: ^2.5.1
-
-  # Routing
-  go_router: ^14.2.0
-
-  # Networking (REST API — see core/network)
-  dio: ^5.5.0
-
-  # Functional error handling (Either<Failure, T>)
-  fpdart: ^1.1.0
-
-  # Backend-as-a-Service (abstracted behind core/backend/BackendClient)
-  supabase_flutter: ^2.5.6
-  firebase_core: ^3.3.0
-  firebase_auth: ^5.1.4
-  cloud_firestore: ^5.2.1
-
-  # Offline persistence + connectivity
-  sqflite: ^2.3.3
-  path: ^1.9.0
-  path_provider: ^2.1.4
-  connectivity_plus: ^6.0.5
-
-  # Local storage
+  flutter_riverpod: ^2.5.1 # state management (non-generated API)
   flutter_secure_storage: ^9.2.2
-  shared_preferences: ^2.3.2
-
-  # Utilities
-  equatable: ^2.0.5
+  fpdart: ^1.1.0 # functional error handling (Either<Failure, T>)
+  go_router: ^14.2.0 # routing
   intl: ^0.19.0 # pinned by flutter_localizations (Flutter 3.24.x); no direct use in lib/
   logger: ^2.4.0
+  path: ^1.9.0
+  path_provider: ^2.1.4
+  shared_preferences: ^2.3.2
+  sqflite: ^2.3.3 # offline persistence (raw SQL)
+  supabase_flutter: ^2.5.6 # BaaS (abstracted behind core/backend/BackendClient)
 
 dev_dependencies:
+  flutter_lints: ^4.0.0
   flutter_test:
     sdk: flutter
-  flutter_lints: ^4.0.0
   mocktail: ^1.0.4
 
 flutter:

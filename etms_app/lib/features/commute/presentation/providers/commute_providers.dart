@@ -43,14 +43,14 @@ class CommuteService {
         if (ac != null) 'ac': ac,
         if (punctuality != null) 'punctuality': punctuality,
         if (comment != null && comment.isNotEmpty) 'comment': comment,
-      });
+      },);
 
   // Lost & found.
   Future<void> reportLostItem(String description, {String? tripId}) =>
       _api.post<Map<String, dynamic>>('/lost-items', body: {
         'description': description,
         if (tripId != null) 'trip_id': tripId,
-      });
+      },);
 
   // My ride history.
   Future<List<MyRide>> myRides() async {

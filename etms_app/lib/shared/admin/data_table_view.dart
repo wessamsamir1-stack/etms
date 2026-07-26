@@ -64,7 +64,7 @@ class DataTableView extends StatelessWidget {
                 for (final c in columns) DataCell(Text(c.value(row))),
                 if (onEdit != null || onDelete != null)
                   DataCell(_actions(row)),
-              ]),
+              ],),
           ],
         ),
       ),

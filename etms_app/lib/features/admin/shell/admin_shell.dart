@@ -33,23 +33,23 @@ class _AdminShellState extends ConsumerState<AdminShell> {
 
   static final _all = <_Destination>[
     _Destination('Dashboard', Icons.dashboard_outlined, 'report.operational',
-        (_) => const DashboardScreen()),
+        (_) => const DashboardScreen(),),
     _Destination('Sites', Icons.location_city_outlined, 'site.read',
-        (_) => CrudListPage(config: AdminResources.site)),
+        (_) => CrudListPage(config: AdminResources.site),),
     _Destination('Vehicles', Icons.directions_bus_outlined, 'vehicle.read',
-        (_) => CrudListPage(config: AdminResources.vehicle)),
+        (_) => CrudListPage(config: AdminResources.vehicle),),
     _Destination('Employees', Icons.badge_outlined, 'employee.read',
-        (_) => CrudListPage(config: AdminResources.employee)),
+        (_) => CrudListPage(config: AdminResources.employee),),
     _Destination('Approvals', Icons.verified_user_outlined, 'employee.manage',
-        (_) => const ApprovalsScreen()),
+        (_) => const ApprovalsScreen(),),
     _Destination('Users', Icons.people_outline, 'user.read',
-        (_) => CrudListPage(config: AdminResources.user)),
+        (_) => CrudListPage(config: AdminResources.user),),
     _Destination('Roles', Icons.shield_outlined, 'role.read',
-        (_) => const RolesScreen()),
+        (_) => const RolesScreen(),),
     _Destination('Waiting timer', Icons.timer_outlined, 'tenant.manage',
-        (_) => const TransportPolicyScreen()),
+        (_) => const TransportPolicyScreen(),),
     _Destination('Branding', Icons.palette_outlined, 'branding.manage',
-        (_) => const BrandingScreen()),
+        (_) => const BrandingScreen(),),
   ];
 
   @override

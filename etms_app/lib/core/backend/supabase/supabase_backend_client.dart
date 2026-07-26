@@ -16,7 +16,7 @@ class SupabaseBackendClient implements BackendClient {
   Future<void> initialize() async {
     await Supabase.initialize(
       url: _config.supabaseUrl,
-      anonKey: _config.supabaseAnonKey,
+      publishableKey: _config.supabaseAnonKey,
     );
   }
 
@@ -76,8 +76,8 @@ class SupabaseBackendClient implements BackendClient {
 
   @override
   Future<List<Map<String, dynamic>>> fetch(String resource,
-      {QuerySpec? query}) async {
-    var q = _applied(resource, query);
+      {QuerySpec? query,}) async {
+    final q = _applied(resource, query);
     final rows = await q;
     return (rows as List).cast<Map<String, dynamic>>();
   }
@@ -90,14 +90,14 @@ class SupabaseBackendClient implements BackendClient {
 
   @override
   Future<Map<String, dynamic>> insert(
-      String resource, Map<String, dynamic> data) async {
+      String resource, Map<String, dynamic> data,) async {
     final row = await _c.from(resource).insert(data).select().single();
     return row;
   }
 
   @override
   Future<Map<String, dynamic>> update(
-      String resource, String id, Map<String, dynamic> data) async {
+      String resource, String id, Map<String, dynamic> data,) async {
     final row =
         await _c.from(resource).update(data).eq('id', id).select().single();
     return row;

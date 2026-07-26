@@ -38,7 +38,7 @@ class _DriverBody extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final svc = ref.read(commuteServiceProvider);
-    final refresh = () => ref.invalidate(tripManifestProvider(tripId));
+    void refresh() => ref.invalidate(tripManifestProvider(tripId));
     final stop = manifest.currentStop;
     final c = manifest.counts;
 
@@ -76,7 +76,7 @@ class _DriverBody extends ConsumerWidget {
                       ),
                       const SizedBox(height: 2),
                       Text(stop?.name ?? '—',
-                          style: theme.textTheme.titleLarge, textAlign: TextAlign.center),
+                          style: theme.textTheme.titleLarge, textAlign: TextAlign.center,),
                       const SizedBox(height: 12),
                       _Countdown(seconds: manifest.countdownSeconds),
                     ],
@@ -177,7 +177,7 @@ class _CountdownState extends State<_Countdown> {
     final ar = Localizations.localeOf(context).languageCode == 'ar';
     if (widget.seconds == null) {
       return Text(ar ? 'لم يصل الباص بعد' : 'Not arrived yet',
-          style: Theme.of(context).textTheme.bodyMedium);
+          style: Theme.of(context).textTheme.bodyMedium,);
     }
     final mm = (_s ~/ 60).toString().padLeft(2, '0');
     final ss = (_s % 60).toString().padLeft(2, '0');
@@ -189,9 +189,9 @@ class _CountdownState extends State<_Countdown> {
                   fontWeight: FontWeight.w800,
                   color: urgent ? const Color(0xFFE1554E) : const Color(0xFFC9871A),
                   fontFeatures: const [FontFeature.tabularFigures()],
-                )),
+                ),),
         Text(ar ? 'متبقّي على التحرّك' : 'until departure',
-            style: Theme.of(context).textTheme.labelSmall),
+            style: Theme.of(context).textTheme.labelSmall,),
       ],
     );
   }
@@ -216,7 +216,7 @@ class _CountTile extends StatelessWidget {
           children: [
             Text('$value',
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.w800, color: color)),
+                    fontWeight: FontWeight.w800, color: color,),),
             Text(label, style: Theme.of(context).textTheme.labelSmall),
           ],
         ),

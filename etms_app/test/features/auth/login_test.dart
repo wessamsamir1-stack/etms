@@ -40,6 +40,6 @@ void main() {
       (_) => fail('expected a failure'),
     );
     verifyNever(() => repo.login(
-        email: any(named: 'email'), password: any(named: 'password')));
+        email: any(named: 'email'), password: any(named: 'password'),),);
   });
 }

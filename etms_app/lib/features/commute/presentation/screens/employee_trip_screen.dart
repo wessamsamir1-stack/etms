@@ -27,7 +27,7 @@ class EmployeeTripScreen extends ConsumerWidget {
           error: (e, _) => ListView(children: [
             const SizedBox(height: 120),
             Center(child: Text(ar ? 'تعذّر تحميل الرحلة' : 'Could not load the trip')),
-          ]),
+          ],),
           data: (m) => _EmployeeBody(tripId: tripId, manifest: m, ar: ar),
         ),
       ),
@@ -53,12 +53,12 @@ class _EmployeeBody extends ConsumerWidget {
         await svc.onTheWay(tripId);
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content: Text(ar ? 'أبلغنا السائق بأنك في الطريق' : 'The driver has been notified')));
+              content: Text(ar ? 'أبلغنا السائق بأنك في الطريق' : 'The driver has been notified'),),);
         }
       } catch (_) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content: Text(ar ? 'تعذّر الإرسال' : 'Could not send')));
+              content: Text(ar ? 'تعذّر الإرسال' : 'Could not send'),),);
         }
       } finally {
         ref.invalidate(tripManifestProvider(tripId));
@@ -71,14 +71,14 @@ class _EmployeeBody extends ConsumerWidget {
         // Status banner
         Card(
           color: arrived
-              ? const Color(0xFF1E9E58).withOpacity(0.12)
-              : theme.colorScheme.primary.withOpacity(0.10),
+              ? const Color(0xFF1E9E58).withValues(alpha: 0.12)
+              : theme.colorScheme.primary.withValues(alpha: 0.10),
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Row(
               children: [
                 Icon(arrived ? Icons.directions_bus : Icons.near_me,
-                    color: arrived ? const Color(0xFF1E9E58) : theme.colorScheme.primary),
+                    color: arrived ? const Color(0xFF1E9E58) : theme.colorScheme.primary,),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
@@ -103,7 +103,7 @@ class _EmployeeBody extends ConsumerWidget {
                 Text(ar ? 'نقطة تجمّعك' : 'Your pickup', style: theme.textTheme.labelMedium),
                 const SizedBox(height: 2),
                 Text(stop?.name ?? (ar ? 'غير محدّد' : 'Not set'),
-                    style: theme.textTheme.titleLarge),
+                    style: theme.textTheme.titleLarge,),
                 if (arrived) ...[
                   const SizedBox(height: 12),
                   _MiniCountdown(seconds: manifest.countdownSeconds, ar: ar),

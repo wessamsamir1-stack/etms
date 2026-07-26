@@ -22,7 +22,7 @@ Future<bool> confirm(
         FilledButton(
           style: destructive
               ? FilledButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.error)
+                  backgroundColor: Theme.of(context).colorScheme.error,)
               : null,
           onPressed: () => Navigator.pop(context, true),
           child: Text(context.l10n.commonSave),

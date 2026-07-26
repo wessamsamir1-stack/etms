@@ -83,7 +83,7 @@ class _FormState extends ConsumerState<_Form> {
         if (primary.isNotEmpty) 'primary_color': norm(primary),
         if (secondary.isNotEmpty) 'secondary_color': norm(secondary),
         if (_splash.text.trim().isNotEmpty) 'splash_url': _splash.text.trim(),
-      });
+      },);
       ref.invalidate(_brandingProvider);
       _snack(ar ? 'تم الحفظ' : 'Saved');
     } catch (_) {
@@ -110,7 +110,7 @@ class _FormState extends ConsumerState<_Form> {
           padding: const EdgeInsets.all(20),
           children: [
             Text(ar ? 'اجعل التطبيق يبدو مملوكًا لشركتك.' : 'Make the app look owned by your company.',
-                style: Theme.of(context).textTheme.bodyMedium),
+                style: Theme.of(context).textTheme.bodyMedium,),
             const SizedBox(height: 16),
             _field(_name, ar ? 'اسم التطبيق' : 'App name'),
             _field(_logo, ar ? 'رابط الشعار (Logo URL)' : 'Logo URL'),
@@ -118,17 +118,17 @@ class _FormState extends ConsumerState<_Form> {
               Expanded(child: _field(_primary, ar ? 'اللون الأساسي' : 'Primary colour', hint: '#1E5AA8', onChange: () => setState(() {}))),
               const SizedBox(width: 10),
               _swatch(p),
-            ]),
+            ],),
             Row(children: [
               Expanded(child: _field(_secondary, ar ? 'اللون الثانوي' : 'Secondary colour', hint: '#0E9E8E', onChange: () => setState(() {}))),
               const SizedBox(width: 10),
               _swatch(s),
-            ]),
+            ],),
             _field(_splash, ar ? 'رابط شاشة البداية (Splash)' : 'Splash image URL'),
             const SizedBox(height: 20),
             FilledButton(
               style: FilledButton.styleFrom(
-                  backgroundColor: p, padding: const EdgeInsets.symmetric(vertical: 16)),
+                  backgroundColor: p, padding: const EdgeInsets.symmetric(vertical: 16),),
               onPressed: _busy ? null : _save,
               child: _busy
                   ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
