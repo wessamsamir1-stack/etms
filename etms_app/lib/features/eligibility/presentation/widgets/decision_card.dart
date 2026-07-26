@@ -41,18 +41,18 @@ class DecisionCard extends StatelessWidget {
                       StatusChip(status: band.status, label: band.label),
                       const SizedBox(width: 8),
                       Text('Risk ${decision.riskScore}',
-                          style: Theme.of(context).textTheme.bodySmall),
+                          style: Theme.of(context).textTheme.bodySmall,),
                     ],
                   ),
                   const SizedBox(height: 6),
                   Text('Employee ${decision.employeeId}',
-                      maxLines: 1, overflow: TextOverflow.ellipsis),
+                      maxLines: 1, overflow: TextOverflow.ellipsis,),
                 ],
               ),
             ),
             if (busy)
               const SizedBox(
-                height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2),)
             else ...[
               IconButton(
                 tooltip: 'Reject',

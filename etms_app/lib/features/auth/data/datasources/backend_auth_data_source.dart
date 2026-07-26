@@ -37,7 +37,7 @@ class BackendAuthDataSourceImpl implements BackendAuthDataSource {
           baseUrl: config.apiBaseUrl,
           connectTimeout: config.requestTimeout,
           receiveTimeout: config.requestTimeout,
-        ));
+        ),);
   final Dio _dio;
 
   @override
@@ -47,7 +47,7 @@ class BackendAuthDataSourceImpl implements BackendAuthDataSource {
         'tenantSlug': tenantSlug,
         'email': email,
         'password': password,
-      });
+      },);
       final data = res.data!;
       final user = data['user'] as Map<String, dynamic>;
       return BackendAuthResult(
@@ -70,7 +70,7 @@ class BackendAuthDataSourceImpl implements BackendAuthDataSource {
   Future<String> refresh(String refreshToken) async {
     final res = await _dio.post<Map<String, dynamic>>('/auth/refresh', data: {
       'refreshToken': refreshToken,
-    });
+    },);
     return res.data!['access_token'] as String;
   }
 

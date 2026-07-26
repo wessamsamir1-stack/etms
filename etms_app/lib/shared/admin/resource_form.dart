@@ -79,7 +79,7 @@ class _ResourceFormDialogState extends ConsumerState<ResourceFormDialog> {
         case FieldType.date:
           final d = _values[f.name] as DateTime?;
           payload[f.name] =
-              d == null ? null : d.toIso8601String().split('T').first;
+              d?.toIso8601String().split('T').first;
         case FieldType.select:
         case FieldType.reference:
           payload[f.name] = _values[f.name];
@@ -156,14 +156,14 @@ class _ResourceFormDialogState extends ConsumerState<ResourceFormDialog> {
         );
       case FieldType.reference:
         final opts = ref.watch(referenceOptionsProvider(
-            (path: f.refResource!, label: f.refLabel)));
+            (path: f.refResource!, label: f.refLabel),),);
         return DropdownButtonFormField<String>(
           value: _values[f.name] as String?,
           decoration: InputDecoration(
             labelText: f.label,
             suffixIcon: opts.isLoading
                 ? const SizedBox(
-                    width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                    width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2),)
                 : null,
           ),
           items: [
@@ -191,7 +191,7 @@ class _ResourceFormDialogState extends ConsumerState<ResourceFormDialog> {
             decoration: InputDecoration(labelText: f.label),
             child: Text(d == null
                 ? '—'
-                : d.toIso8601String().split('T').first),
+                : d.toIso8601String().split('T').first,),
           ),
         );
       case FieldType.number:

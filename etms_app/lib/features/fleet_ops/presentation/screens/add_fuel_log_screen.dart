@@ -46,13 +46,13 @@ class _AddFuelLogScreenState extends ConsumerState<AddFuelLogScreen> {
       ref.invalidate(fuelLogsProvider);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(ar ? 'تم تسجيل التعبئة' : 'Fill recorded')));
+            SnackBar(content: Text(ar ? 'تم تسجيل التعبئة' : 'Fill recorded')),);
         context.pop();
       }
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(ar ? 'تعذّر الحفظ — حاول مرة أخرى' : 'Could not save — try again')));
+            SnackBar(content: Text(ar ? 'تعذّر الحفظ — حاول مرة أخرى' : 'Could not save — try again')),);
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -120,7 +120,7 @@ class _AddFuelLogScreenState extends ConsumerState<AddFuelLogScreen> {
               controller: _odometer,
               keyboardType: TextInputType.number,
               decoration: InputDecoration(
-                  labelText: ar ? 'عداد الكيلومترات (اختياري)' : 'Odometer km (optional)'),
+                  labelText: ar ? 'عداد الكيلومترات (اختياري)' : 'Odometer km (optional)',),
             ),
             const SizedBox(height: 12),
             TextFormField(
@@ -133,7 +133,7 @@ class _AddFuelLogScreenState extends ConsumerState<AddFuelLogScreen> {
               onPressed: _saving ? null : () => _save(ar),
               icon: _saving
                   ? const SizedBox(
-                      width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                      width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2),)
                   : const Icon(Icons.save_outlined),
               label: Text(ar ? 'حفظ' : 'Save'),
             ),

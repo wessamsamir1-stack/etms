@@ -28,7 +28,7 @@ class TripRemoteDataSourceImpl implements TripRemoteDataSource {
 
   @override
   Future<void> postEvents(
-      String tripId, List<Map<String, dynamic>> events) async {
+      String tripId, List<Map<String, dynamic>> events,) async {
     await _api.post<Map<String, dynamic>>(
       '/trips/$tripId/events',
       body: {'events': events},

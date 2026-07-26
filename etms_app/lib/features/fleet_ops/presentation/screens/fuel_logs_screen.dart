@@ -28,12 +28,12 @@ class FuelLogsScreen extends ConsumerWidget {
           error: (e, _) => ListView(children: [
             const SizedBox(height: 120),
             Center(child: Text(ar ? 'تعذّر تحميل سجل البنزين' : 'Could not load fuel log')),
-          ]),
+          ],),
           data: (logs) => logs.isEmpty
               ? ListView(children: [
                   const SizedBox(height: 120),
                   Center(child: Text(ar ? 'لا تعبئات مسجلة بعد' : 'No fills recorded yet')),
-                ])
+                ],)
               : ListView(
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 88),
                   children: [
@@ -60,7 +60,7 @@ class _Summary extends StatelessWidget {
       _Stat(value: '${logs.length}', label: ar ? 'تعبئات' : 'Fills', color: Theme.of(context).colorScheme.primary),
       _Stat(value: liters.toStringAsFixed(1), label: ar ? 'لتر' : 'Liters', color: const Color(0xFF1E9E58)),
       _Stat(value: cost.toStringAsFixed(2), label: ar ? 'التكلفة' : 'Cost', color: const Color(0xFFB07708)),
-    ]);
+    ],);
   }
 }
 
@@ -86,9 +86,9 @@ class _Stat extends StatelessWidget {
               style: Theme.of(context)
                   .textTheme
                   .titleLarge
-                  ?.copyWith(fontWeight: FontWeight.w800, color: color)),
+                  ?.copyWith(fontWeight: FontWeight.w800, color: color),),
           Text(label, style: Theme.of(context).textTheme.labelSmall),
-        ]),
+        ],),
       ),
     );
   }
@@ -119,9 +119,9 @@ class _FuelTile extends StatelessWidget {
           if (log.driver != null) log.driver!,
           if (log.odometerKm != null) '${log.odometerKm} ${ar ? 'كم' : 'km'}',
           if (log.station != null && log.station!.isNotEmpty) log.station!,
-        ].join(' · ')),
+        ].join(' · '),),
         trailing: Text('${log.costAmount.toStringAsFixed(2)} ${log.currency}',
-            style: const TextStyle(fontWeight: FontWeight.w700)),
+            style: const TextStyle(fontWeight: FontWeight.w700),),
       ),
     );
   }

@@ -13,7 +13,7 @@ class CrudListController extends FamilyAsyncNotifier<List<Json>, String> {
   CrudRepository get _repo => ref.read(crudRepositoryProvider);
 
   @override
-  Future<List<Json>> build(String path) => _fetch();
+  Future<List<Json>> build(String arg) => _fetch();
 
   Future<List<Json>> _fetch() async {
     final res = await _repo.list(_path);

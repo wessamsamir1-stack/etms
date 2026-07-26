@@ -58,13 +58,13 @@ class _ViolationsScreenState extends ConsumerState<ViolationsScreen> {
                   const SizedBox(height: 120),
                   Center(
                       child:
-                          Text(ar ? 'تعذّر تحميل المخالفات' : 'Could not load violations')),
-                ]),
+                          Text(ar ? 'تعذّر تحميل المخالفات' : 'Could not load violations'),),
+                ],),
                 data: (items) => items.isEmpty
                     ? ListView(children: [
                         const SizedBox(height: 120),
                         Center(child: Text(ar ? 'لا مخالفات' : 'No violations')),
-                      ])
+                      ],)
                     : ListView(
                         padding: const EdgeInsets.fromLTRB(16, 8, 16, 88),
                         children: [
@@ -103,7 +103,7 @@ class _ViolationsScreenState extends ConsumerState<ViolationsScreen> {
             ListTile(
                 title: Text(
                     ar ? 'تغيير حالة المخالفة ${v.violationNo ?? ''}' : 'Change status ${v.violationNo ?? ''}',
-                    style: const TextStyle(fontWeight: FontWeight.w700))),
+                    style: const TextStyle(fontWeight: FontWeight.w700),),),
             for (final opt in ViolationStatus.values.where((o) => o != ViolationStatus.unknown))
               ListTile(
                 leading: Icon(Icons.circle, size: 12, color: statusColor(opt)),
@@ -121,7 +121,7 @@ class _ViolationsScreenState extends ConsumerState<ViolationsScreen> {
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(ar ? 'تعذّر تحديث الحالة' : 'Could not update status')));
+            SnackBar(content: Text(ar ? 'تعذّر تحديث الحالة' : 'Could not update status')),);
       }
     }
   }
@@ -180,15 +180,15 @@ class _ViolationTile extends StatelessWidget {
           if (v.driver != null) v.driver!,
           if (v.violationNo != null) '#${v.violationNo}',
           if (v.location != null && v.location!.isNotEmpty) v.location!,
-        ].join(' · ')),
+        ].join(' · '),),
         trailing: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             Text('${v.amount.toStringAsFixed(2)} ${v.currency}',
-                style: const TextStyle(fontWeight: FontWeight.w700)),
+                style: const TextStyle(fontWeight: FontWeight.w700),),
             Text(statusLabel(v.status, ar),
-                style: TextStyle(color: statusColor(v.status), fontSize: 12)),
+                style: TextStyle(color: statusColor(v.status), fontSize: 12),),
           ],
         ),
       ),

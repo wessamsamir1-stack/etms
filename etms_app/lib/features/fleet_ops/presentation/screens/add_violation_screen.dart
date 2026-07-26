@@ -54,13 +54,13 @@ class _AddViolationScreenState extends ConsumerState<AddViolationScreen> {
       ref.invalidate(violationsProvider);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(ar ? 'تم تسجيل المخالفة' : 'Violation registered')));
+            SnackBar(content: Text(ar ? 'تم تسجيل المخالفة' : 'Violation registered')),);
         context.pop();
       }
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(ar ? 'تعذّر الحفظ — حاول مرة أخرى' : 'Could not save — try again')));
+            content: Text(ar ? 'تعذّر الحفظ — حاول مرة أخرى' : 'Could not save — try again'),),);
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -131,7 +131,7 @@ class _AddViolationScreenState extends ConsumerState<AddViolationScreen> {
             TextFormField(
               controller: _violationNo,
               decoration: InputDecoration(
-                  labelText: ar ? 'رقم المخالفة (اختياري)' : 'Ticket number (optional)'),
+                  labelText: ar ? 'رقم المخالفة (اختياري)' : 'Ticket number (optional)',),
             ),
             const SizedBox(height: 12),
             TextFormField(
@@ -157,7 +157,7 @@ class _AddViolationScreenState extends ConsumerState<AddViolationScreen> {
               onPressed: _saving ? null : () => _save(ar),
               icon: _saving
                   ? const SizedBox(
-                      width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
+                      width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2),)
                   : const Icon(Icons.save_outlined),
               label: Text(ar ? 'حفظ' : 'Save'),
             ),

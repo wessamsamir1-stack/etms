@@ -49,7 +49,7 @@ abstract final class AdminResources {
       FieldSpec(name: 'code', label: 'Code'),
       FieldSpec(name: 'timezone', label: 'Timezone', hint: 'e.g. Asia/Kuwait'),
       FieldSpec(
-          name: 'status', label: 'Status', type: FieldType.select, options: _statusSite),
+          name: 'status', label: 'Status', type: FieldType.select, options: _statusSite,),
     ],
   );
 
@@ -71,20 +71,20 @@ abstract final class AdminResources {
     fields: const [
       FieldSpec(name: 'plate_no', label: 'Plate No.', required: true),
       FieldSpec(
-          name: 'type', label: 'Type', type: FieldType.select, options: _vehicleTypes),
+          name: 'type', label: 'Type', type: FieldType.select, options: _vehicleTypes,),
       FieldSpec(
-          name: 'capacity', label: 'Capacity', type: FieldType.number, required: true),
+          name: 'capacity', label: 'Capacity', type: FieldType.number, required: true,),
       FieldSpec(
-          name: 'status', label: 'Status', type: FieldType.select, options: _statusVehicle),
+          name: 'status', label: 'Status', type: FieldType.select, options: _statusVehicle,),
       FieldSpec(
           name: 'vendor_id',
           label: 'Vendor',
           type: FieldType.reference,
-          refResource: 'vendors'),
+          refResource: 'vendors',),
       FieldSpec(
-          name: 'inspection_expiry', label: 'Inspection expiry', type: FieldType.date),
+          name: 'inspection_expiry', label: 'Inspection expiry', type: FieldType.date,),
       FieldSpec(
-          name: 'insurance_expiry', label: 'Insurance expiry', type: FieldType.date),
+          name: 'insurance_expiry', label: 'Insurance expiry', type: FieldType.date,),
     ],
   );
 
@@ -112,12 +112,12 @@ abstract final class AdminResources {
           name: 'cost_center_id',
           label: 'Cost center',
           type: FieldType.reference,
-          refResource: 'cost-centers'),
+          refResource: 'cost-centers',),
       FieldSpec(
           name: 'default_site_id',
           label: 'Default site',
           type: FieldType.reference,
-          refResource: 'sites'),
+          refResource: 'sites',),
     ],
   );
 
@@ -140,9 +140,9 @@ abstract final class AdminResources {
       FieldSpec(name: 'email', label: 'Email'),
       FieldSpec(name: 'phone', label: 'Phone'),
       FieldSpec(
-          name: 'status', label: 'Status', type: FieldType.select, options: _userStatus),
+          name: 'status', label: 'Status', type: FieldType.select, options: _userStatus,),
       FieldSpec(
-          name: 'locale', label: 'Language', type: FieldType.select, options: _locales),
+          name: 'locale', label: 'Language', type: FieldType.select, options: _locales,),
     ],
   );
 }

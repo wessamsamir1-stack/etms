@@ -19,7 +19,7 @@ class LoggingInterceptor extends InterceptorsWrapper {
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
     appLogger.w('✗ ${err.response?.statusCode} ${err.requestOptions.uri}',
-        error: err.message);
+        error: err.message,);
     handler.next(err);
   }
 }

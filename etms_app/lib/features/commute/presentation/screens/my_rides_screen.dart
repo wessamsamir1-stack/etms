@@ -22,12 +22,12 @@ class MyRidesScreen extends ConsumerWidget {
           error: (e, _) => ListView(children: [
             const SizedBox(height: 120),
             Center(child: Text(ar ? 'تعذّر تحميل السجل' : 'Could not load history')),
-          ]),
+          ],),
           data: (rides) => rides.isEmpty
               ? ListView(children: [
                   const SizedBox(height: 120),
                   Center(child: Text(ar ? 'لا رحلات بعد' : 'No rides yet')),
-                ])
+                ],)
               : ListView(
                   padding: const EdgeInsets.all(16),
                   children: [
@@ -80,7 +80,7 @@ class _Stat extends StatelessWidget {
         child: Column(children: [
           Text('$value', style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800, color: color)),
           Text(label, style: Theme.of(context).textTheme.labelSmall),
-        ]),
+        ],),
       ),
     );
   }

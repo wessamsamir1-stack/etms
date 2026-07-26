@@ -24,7 +24,7 @@ class TripLocalDataSourceImpl implements TripLocalDataSource {
     );
     return rows
         .map((r) =>
-            TripDto.fromJson(jsonDecode(r['data'] as String) as Map<String, dynamic>))
+            TripDto.fromJson(jsonDecode(r['data'] as String) as Map<String, dynamic>),)
         .toList();
   }
 

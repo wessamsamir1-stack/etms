@@ -32,10 +32,10 @@ abstract interface class BackendClient {
   Future<int> count(String resource, {QuerySpec? query});
 
   Future<Map<String, dynamic>> insert(
-      String resource, Map<String, dynamic> data);
+      String resource, Map<String, dynamic> data,);
 
   Future<Map<String, dynamic>> update(
-      String resource, String id, Map<String, dynamic> data);
+      String resource, String id, Map<String, dynamic> data,);
 
   Future<void> delete(String resource, String id);
 

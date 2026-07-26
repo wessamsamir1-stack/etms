@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -32,7 +33,7 @@ class _LostFoundScreenState extends ConsumerState<LostFoundScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(ar ? 'تم إرسال البلاغ' : 'Report submitted')),
       );
-      Navigator.of(context).maybePop();
+      unawaited(Navigator.of(context).maybePop());
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(

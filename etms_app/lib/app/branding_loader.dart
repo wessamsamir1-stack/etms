@@ -23,5 +23,5 @@ final brandingLoaderProvider = Provider<void>((ref) {
     } catch (_) {
       // Keep the current theme if branding can't be fetched.
     }
-  }, fireImmediately: true);
+  }, fireImmediately: true,);
 });
