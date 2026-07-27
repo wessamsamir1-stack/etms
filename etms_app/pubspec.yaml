@@ -33,6 +33,14 @@ dependencies:
   sqflite: ^2.3.3 # offline persistence (raw SQL)
   supabase_flutter: ^2.5.6 # BaaS (abstracted behind core/backend/BackendClient)
 
+# jni 1.0.1 (published 2026-07-27) ships an android/build.gradle that calls
+# kotlin() outside a plugins block, which this app's Gradle 9 / AGP 9 setup
+# cannot resolve — the release APK build fails while evaluating project ':jni'.
+# It arrives transitively via path_provider_android. Pinned to the last version
+# that builds; drop this override once jni fixes its Gradle script.
+dependency_overrides:
+  jni: 1.0.0
+
 dev_dependencies:
   flutter_lints: ^4.0.0
   flutter_test:

@@ -4,7 +4,6 @@
 build/
 .flutter-plugins
 .flutter-plugins-dependencies
-pubspec.lock
 
 # Generated localization
 lib/l10n/generated/
