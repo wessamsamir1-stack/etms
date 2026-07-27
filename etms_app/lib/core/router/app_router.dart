@@ -15,7 +15,9 @@ import '../../features/fleet_ops/presentation/screens/add_fuel_log_screen.dart';
 import '../../features/fleet_ops/presentation/screens/add_violation_screen.dart';
 import '../../features/fleet_ops/presentation/screens/fleet_reports_screen.dart';
 import '../../features/fleet_ops/presentation/screens/fuel_logs_screen.dart';
+import '../../features/fleet_ops/presentation/screens/ops_reports_screen.dart';
 import '../../features/fleet_ops/presentation/screens/violations_screen.dart';
+import '../../features/ride_requests/presentation/screens/driver_ride_requests_screen.dart';
 import '../access/permissions.dart';
 import 'app_routes.dart';
 
@@ -103,6 +105,16 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.fleetReports,
         name: 'fleetReports',
         builder: (_, __) => const FleetReportsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.opsReports,
+        name: 'opsReports',
+        builder: (_, __) => const OpsReportsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.rideRequests,
+        name: 'rideRequests',
+        builder: (_, __) => const DriverRideRequestsScreen(),
       ),
       GoRoute(
         path: AppRoutes.lostFound,

@@ -131,6 +131,18 @@ normal. A bus is flagged when it runs below 75 % of the median km/L
 Both rules live in pure, unit-tested modules (`domain/fleet/*`), so the
 thresholds can be argued about without touching SQL.
 
+### The app screens
+
+| Screen | Where | Shows |
+|---|---|---|
+| Driver trip (manifest) | `features/commute/.../driver_trip_screen.dart` | a seats bar — *N مقعد متاح* / *الباص ممتلئ* — and the waiting list under the manifest, with remove + promote for `waitlist.manage` |
+| Ride requests | `features/ride_requests/` | the driver's open offers, each badged **على مسارك** / **خارج مسارك** / **مفيش خطة معتمدة**, a "على مساري بس" filter, and a claim button that says whether the rider was seated or queued at position *N* |
+| Operational reports | `features/fleet_ops/.../ops_reports_screen.dart` | the eight reports over a date range, one at a time — anomaly and discipline flags are badged rather than buried in a column |
+
+The three states of `matches_route` are kept distinct in the UI on purpose:
+"no approved plan" is grey, not the amber of "off your route" — the driver is
+being told the system has nothing to compare against, not that the ride is far.
+
 ### Views (V0033)
 
 | View | Contents |

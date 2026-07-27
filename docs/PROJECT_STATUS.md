@@ -16,7 +16,7 @@ A whole-project snapshot: what exists, what is **verified** (actually run) vs.
 | Database | `db/migrations/` | **33 migrations** (V0000–V0033; no V0030) | Complete for built features | **Verified** — applies clean on PG16+PostGIS; RLS proven |
 | Backend API | `backend/` | 69 source + 26 test files, 18 route modules | Broad vertical coverage | **Verified** — **106/107** tests, live DB (the one failure predates this work: an integration test expects an 'Acme HQ' fixture the seed does not create) |
 | Web consoles | `docs/etms/*.html` | 6 (incl. tenant admin + platform Super-Admin) | Working | **Verified** — driven in Chromium |
-| Client apps | `etms_app/` | 95 Dart files | Skeleton + admin portal + feature slices | **Reviewed only** (no Flutter SDK) |
+| Client apps | `etms_app/` | 110 Dart files | Skeleton + admin portal + feature slices | **Analyzer + unit tests verified** on Flutter 3.44.8 (`flutter analyze` clean, 25/25 tests); not yet driven on a device |
 
 ## 2. Backend capabilities (all verified against a live database)
 
@@ -45,6 +45,7 @@ A whole-project snapshot: what exists, what is **verified** (actually run) vs.
 | **Trip waiting list** | capacity guard (trip override, else the assigned vehicle); a full bus queues the employee and auto-promotes them when a seat frees (V0031) |
 | **Zone matching** | a ride request's pickup is tested with `ST_Covers` against the zones on the driver's approved daily plan; `matchMyRoute` filters the driver's list (V0032) |
 | **Ops report pack** | driver-ops, vehicle-ops, trip-duration, inefficient-trips (detour detection from the GPS trail), fuel-efficiency (per-bus anomaly vs the fleet median), route-cost, attendance-discipline, plan-adherence (V0033) |
+| **App screens for the above** | driver manifest shows seats left + the waiting list; a driver ride-request inbox badged on-route / off-route / no-plan with the "on my route only" filter; an operational-reports screen for all eight reports |
 
 ## 3. Security posture
 
@@ -65,7 +66,7 @@ A whole-project snapshot: what exists, what is **verified** (actually run) vs.
 | **Face-match + object storage** | needs your keys | Selfie stored as a reference; face-match is a manual stub; no storage upload adapter. |
 | **Real HRIS pull (SuccessFactors/OData)** | needs your creds | Adapter is a documented stub; transform/upsert is verified. |
 | **Pre-arrival reminders (10/3-min)** | needs a model change | Arrival-driven model; `trip_stop` has no planned time to schedule against. |
-| **Flutter apps compiled/run** | needs the SDK | 95 Dart files reviewed, not compiled here. Run `flutter pub get && flutter analyze && flutter test`, then drive on a device. |
+| **Flutter apps driven on a device** | needs a device/emulator | `flutter analyze` (clean) and `flutter test` (25/25) now run here on 3.44.8, so the code compiles and the models are covered — but no screen has been exercised against a live API on a real device. |
 | **Flutter Super-Admin & approvals UIs** | not built | Only the HTML platform console + tenant dashboards exist as UIs. |
 | **Field encryption — home/pickup address done** | extend as needed | AES-256-GCM keyring applied to the address PII; apply the same util to a gov-ID column when one is added. |
 | **Dedicated per-tenant AI model** | not built | Port + null adapter only. |

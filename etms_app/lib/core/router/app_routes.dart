@@ -20,6 +20,12 @@ abstract final class AppRoutes {
   static const violationAdd = '/fleet/violations/add';
   static const fleetReports = '/fleet/reports';
 
+  /// The operational report pack (db V0033).
+  static const opsReports = '/reports/ops';
+
+  /// The driver's ride-request inbox, with the on-my-route filter (db V0032).
+  static const rideRequests = '/ride-requests';
+
   static String driverTripFor(String tripId) => '$driverTrip/$tripId';
   static String myTripFor(String tripId) => '$myTrip/$tripId';
   static String rateTripFor(String tripId) => '$rateTrip/$tripId/rate';
