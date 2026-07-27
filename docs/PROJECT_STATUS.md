@@ -13,8 +13,8 @@ A whole-project snapshot: what exists, what is **verified** (actually run) vs.
 | Layer | Location | Size | Status | Verification |
 |-------|----------|------|--------|--------------|
 | Specification | `docs/etms/` | 19 docs + 64 screen specs | Complete | Reviewed |
-| Database | `db/migrations/` | **27 migrations** (V0000–V0026) | Complete for built features | **Verified** — applies clean on PG16+PostGIS; RLS proven |
-| Backend API | `backend/` | 55 source + 19 test files, 16 route modules | Broad vertical coverage | **Verified** — **102/102** tests, live DB |
+| Database | `db/migrations/` | **33 migrations** (V0000–V0033; no V0030) | Complete for built features | **Verified** — applies clean on PG16+PostGIS; RLS proven |
+| Backend API | `backend/` | 69 source + 26 test files, 18 route modules | Broad vertical coverage | **Verified** — **106/107** tests, live DB (the one failure predates this work: an integration test expects an 'Acme HQ' fixture the seed does not create) |
 | Web consoles | `docs/etms/*.html` | 6 (incl. tenant admin + platform Super-Admin) | Working | **Verified** — driven in Chromium |
 | Client apps | `etms_app/` | 95 Dart files | Skeleton + admin portal + feature slices | **Reviewed only** (no Flutter SDK) |
 
@@ -42,6 +42,9 @@ A whole-project snapshot: what exists, what is **verified** (actually run) vs.
 | **Super-Admin platform API** | cross-tenant (BYPASSRLS) company provisioning, subscriptions/plans, feature flags, audit (V0023) |
 | **Feature-flag enforcement** | per-tenant flags gate the tenant API at runtime (opt-out, cached); `ride_requests` + `live_tracking` wired → disabled ⇒ 403 FEATURE_DISABLED |
 | **Reports / dashboards** | operational + daily-commute metrics; RLS-scoped aggregates |
+| **Trip waiting list** | capacity guard (trip override, else the assigned vehicle); a full bus queues the employee and auto-promotes them when a seat frees (V0031) |
+| **Zone matching** | a ride request's pickup is tested with `ST_Covers` against the zones on the driver's approved daily plan; `matchMyRoute` filters the driver's list (V0032) |
+| **Ops report pack** | driver-ops, vehicle-ops, trip-duration, inefficient-trips (detour detection from the GPS trail), fuel-efficiency (per-bus anomaly vs the fleet median), route-cost, attendance-discipline, plan-adherence (V0033) |
 
 ## 3. Security posture
 
@@ -67,13 +70,13 @@ A whole-project snapshot: what exists, what is **verified** (actually run) vs.
 | **Field encryption — home/pickup address done** | extend as needed | AES-256-GCM keyring applied to the address PII; apply the same util to a gov-ID column when one is added. |
 | **Dedicated per-tenant AI model** | not built | Port + null adapter only. |
 | **Redis-backed limiter** | infra | In-process today (fine single-instance). |
-| **Deploy to a live environment** | infra | Dockerfile + compose (db, migrate, api, worker) verified locally; no cloud deploy / DR drill. |
+| **Deploy to a live environment** | infra | Production compose (db, pgBouncer transaction pooling, migrate, api, worker, SSE-aware nginx) + runbook in `deploy/`; compose and nginx configs validated locally, but **no cloud deploy / DR drill** was performed. |
 | **Split ETMS into its own repo** | ops | Still inside `curvy-app`; pushing to a separate `etms` repo was blocked by session scope (`migrate-etms.bat` provided). |
 
 ## 5. How to verify locally
 ```bash
 # Backend (fully runnable + tested here)
-cd backend && npm install && npm run build && npm test          # 102/102
+cd backend && npm install && npm run build && npm test          # 106/107 (see note above)
 docker compose -f backend/docker-compose.yml up --build          # db + migrate + api + worker
 
 # Platform + worker roles/seed (outside compose)

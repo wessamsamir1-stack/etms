@@ -59,4 +59,12 @@ export const commuteMessages = {
       : 'The bus has left your pickup point; you were marked as No-Show.',
   onTheWay: (name: string, l: Lang) =>
     l === 'ar' ? `${name} في طريقه إلى نقطة التجمّع.` : `${name} is on the way to the pickup point.`,
+  waitlisted: (position: number, l: Lang) =>
+    l === 'ar'
+      ? `الباص ممتلئ — تم تسجيلك في قائمة الانتظار بالرقم ${position}، وسنبلغك فور توفّر مقعد.`
+      : `The bus is full — you are number ${position} on the waiting list and will be notified when a seat frees up.`,
+  promoted: (l: Lang) =>
+    l === 'ar'
+      ? 'توفّر مقعد وتم تأكيد ركوبك في الرحلة.'
+      : 'A seat has freed up — your place on the trip is confirmed.',
 };

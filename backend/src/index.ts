@@ -6,7 +6,9 @@ import { FieldCrypto } from './util/field_crypto';
 /** Composition root: resolve config, connect DB (if configured), start server. */
 async function main(): Promise<void> {
   const config = loadConfig();
-  const db = config.databaseUrl ? Db.fromUrl(config.databaseUrl) : null;
+  // Queries go through the connection pooler; the realtime LISTEN/NOTIFY
+  // connection goes straight to Postgres (see Config.listenerDatabaseUrl).
+  const db = config.databaseUrl ? Db.fromUrl(config.databaseUrl, config.listenerDatabaseUrl) : null;
   // Cross-tenant platform (Super-Admin) connection — a BYPASSRLS role. Reuse the
   // main pool when both URLs resolve to the same connection string.
   const platformDb =

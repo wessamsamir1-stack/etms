@@ -598,3 +598,237 @@ test('a check-constraint violation surfaces as 422 (bad route direction)', opts,
   });
   assert.equal(res.statusCode, 422);
 });
+
+test('waitlist: a full bus queues the next employee and promotes them when a seat frees', opts, async () => {
+  const session = (await login('admin@acme.com', 'Passw0rd!')).json();
+  const H = { authorization: `Bearer ${session.access_token}` };
+  const post = (url: string, payload: Record<string, unknown>) =>
+    app.inject({ method: 'POST', url, headers: H, payload });
+  const get = (url: string) => app.inject({ method: 'GET', url, headers: H });
+
+  // A two-seat bus with a verified driver on today's trip.
+  const drv = (await post('/v1/drivers', { full_name: 'WL Driver', verification_status: 'verified', availability: 'available' })).json().data.id;
+  const veh = (await post('/v1/vehicles', { plate_no: 'WL-2', capacity: 2, status: 'active' })).json().data.id;
+  const trip = (await post('/v1/trips', { service_date: '2026-07-22', direction: 'inbound' })).json().data.id;
+  assert.equal((await post(`/v1/trips/${trip}/assign`, { vehicleId: veh, driverId: drv })).statusCode, 200);
+
+  const emp = async (name: string): Promise<string> =>
+    (await post('/v1/employees', { full_name: name, external_hr_id: `WL-${name}`, eligible: true })).json().data.id;
+  const [e1, e2, e3, e4] = [await emp('WL One'), await emp('WL Two'), await emp('WL Three'), await emp('WL Four')];
+
+  // The two seats fill normally.
+  const first = await post(`/v1/trips/${trip}/passengers`, { employee_id: e1 });
+  assert.equal(first.statusCode, 201);
+  assert.equal(first.json().seats.remaining, 1);
+  assert.equal((await post(`/v1/trips/${trip}/passengers`, { employee_id: e2 })).statusCode, 201);
+
+  // The bus is full → the third employee is queued, not rejected.
+  const queued = await post(`/v1/trips/${trip}/passengers`, { employee_id: e3 });
+  assert.equal(queued.statusCode, 202);
+  assert.equal(queued.json().waitlisted, true);
+  assert.equal(queued.json().position, 1);
+
+  // Opting out of the queue gives the plain "full" conflict instead.
+  const refused = await post(`/v1/trips/${trip}/passengers`, { employee_id: e4, waitlist: false });
+  assert.equal(refused.statusCode, 409);
+
+  // The manifest read carries the seat accounting the driver screen needs.
+  const manifest = (await get(`/v1/trips/${trip}/manifest`)).json().data;
+  assert.equal(manifest.capacity, 2);
+  assert.equal(manifest.occupied, 2);
+  assert.equal(manifest.remaining_seats, 0);
+  assert.equal(manifest.waiting, 1);
+
+  const list = (await get(`/v1/trips/${trip}/waitlist`)).json();
+  assert.equal(list.data.length, 1);
+  assert.equal(list.data[0].employee_id, e3);
+  assert.equal(list.data[0].status, 'waiting');
+  assert.equal(list.seats.remaining, 0);
+
+  // Excusing a passenger frees a seat → the head of the queue is promoted.
+  const pax1 = (manifest.passengers as Array<{ id: string; employee_id: string }>).find((x) => x.employee_id === e1)!;
+  const excused = await post(`/v1/trips/${trip}/passengers/${pax1.id}/status`, { status: 'excused' });
+  assert.equal(excused.statusCode, 200);
+  assert.equal(excused.json().promotedFromWaitlist.length, 1);
+  assert.equal(excused.json().promotedFromWaitlist[0].employeeId, e3);
+
+  const after = (await get(`/v1/trips/${trip}/manifest`)).json().data;
+  assert.equal(after.occupied, 2);
+  assert.equal(after.remaining_seats, 0);
+  assert.equal(after.waiting, 0);
+  assert.ok((after.passengers as Array<{ employee_id: string; status: string }>)
+    .some((x) => x.employee_id === e3 && x.status === 'expected'));
+
+  const promotedList = (await get(`/v1/trips/${trip}/waitlist?status=promoted`)).json().data;
+  assert.equal(promotedList.length, 1);
+  assert.equal(promotedList[0].employee_id, e3);
+});
+
+test('waitlist: an uncapped trip promotes immediately; a cancelled entry never does', opts, async () => {
+  const session = (await login('admin@acme.com', 'Passw0rd!')).json();
+  const H = { authorization: `Bearer ${session.access_token}` };
+  const post = (url: string, payload: Record<string, unknown>) =>
+    app.inject({ method: 'POST', url, headers: H, payload });
+
+  // No capacity override and no assigned vehicle → the trip is uncapped.
+  const trip = (await post('/v1/trips', { service_date: '2026-07-23', direction: 'outbound' })).json().data.id;
+  const e1 = (await post('/v1/employees', { full_name: 'WL Five', external_hr_id: 'WL-5', eligible: true })).json().data.id;
+  const e2 = (await post('/v1/employees', { full_name: 'WL Six', external_hr_id: 'WL-6', eligible: true })).json().data.id;
+
+  const queued = await post(`/v1/trips/${trip}/waitlist`, { employee_id: e1 });
+  assert.equal(queued.statusCode, 201); // a seat was free, so it promoted at once
+  assert.equal(queued.json().promoted.length, 1);
+
+  // Queue someone on a capped, full trip and then cancel their entry.
+  const veh = (await post('/v1/vehicles', { plate_no: 'WL-1', capacity: 1, status: 'active' })).json().data.id;
+  const drv = (await post('/v1/drivers', { full_name: 'WL Driver 2', verification_status: 'verified', availability: 'available' })).json().data.id;
+  const capped = (await post('/v1/trips', { service_date: '2026-07-23', direction: 'inbound' })).json().data.id;
+  await post(`/v1/trips/${capped}/assign`, { vehicleId: veh, driverId: drv });
+  await post(`/v1/trips/${capped}/passengers`, { employee_id: e1 });
+
+  const wl = await post(`/v1/trips/${capped}/waitlist`, { employee_id: e2 });
+  assert.equal(wl.statusCode, 202);
+  const entryId = wl.json().data.id as string;
+
+  const cancelled = await app.inject({ method: 'DELETE', url: `/v1/trips/${capped}/waitlist/${entryId}`, headers: H });
+  assert.equal(cancelled.statusCode, 200);
+  assert.equal(cancelled.json().data.status, 'cancelled');
+
+  // Freeing the seat now promotes nobody — the queue is empty.
+  const manifest = (await app.inject({ method: 'GET', url: `/v1/trips/${capped}/manifest`, headers: H })).json().data;
+  const pax = (manifest.passengers as Array<{ id: string }>)[0]!;
+  const removed = await post(`/v1/trips/${capped}/passengers/${pax.id}/status`, { status: 'removed' });
+  assert.equal(removed.json().promotedFromWaitlist.length, 0);
+
+  // Cancelling twice is a conflict, not a silent success.
+  const again = await app.inject({ method: 'DELETE', url: `/v1/trips/${capped}/waitlist/${entryId}`, headers: H });
+  assert.equal(again.statusCode, 409);
+});
+
+test('ride requests: matchMyRoute keeps only the pickups inside the driver plan zones', opts, async () => {
+  const session = (await login('admin@acme.com', 'Passw0rd!')).json();
+  const H = { authorization: `Bearer ${session.access_token}` };
+  const post = (url: string, payload: Record<string, unknown>) =>
+    app.inject({ method: 'POST', url, headers: H, payload });
+
+  const siteId = (await post('/v1/sites', { name: 'Zone Site' })).json().data.id as string;
+  // Two square zones ~1° apart: Salmiya around (29.33,48.07), Jahra around (29.33,47.65).
+  const zones = await db!.withTenant(session.user.tenantId, session.user.id, (c) =>
+    c.query(
+      `INSERT INTO zone(tenant_id, site_id, name, boundary)
+       VALUES (app_current_tenant(),$1,'Salmiya',
+               ST_SetSRID(ST_MakeEnvelope(48.05, 29.31, 48.09, 29.35),4326)::geography),
+              (app_current_tenant(),$1,'Jahra',
+               ST_SetSRID(ST_MakeEnvelope(47.63, 29.31, 47.67, 29.35),4326)::geography)
+       RETURNING id, name`,
+      [siteId],
+    ),
+  );
+  const salmiya = zones.rows.find((z) => z.name === 'Salmiya')!.id as string;
+
+  // A driver who is logged in as this user and plans to cover Salmiya only.
+  // Detach any driver an earlier test linked to this account, so "the caller's
+  // driver record" resolves to exactly the one created here.
+  await db!.withTenant(session.user.tenantId, session.user.id, (c) =>
+    c.query('UPDATE driver SET user_id=NULL WHERE user_id=$1', [session.user.id]),
+  );
+  const drvId = (await post('/v1/drivers', {
+    full_name: 'Zone Driver', user_id: session.user.id,
+    verification_status: 'verified', availability: 'available',
+  })).json().data.id as string;
+  const plan = await post('/v1/driver-plans', {
+    service_date: '2026-07-24', window_start: '06:00', window_end: '10:00', zone_ids: [salmiya],
+  });
+  assert.equal(plan.statusCode, 201);
+  assert.equal((await post(`/v1/driver-plans/${plan.json().data.id}/approve`, {})).statusCode, 200);
+
+  // Two riders: one inside Salmiya, one out in Jahra. Both broadcast.
+  const rider = async (name: string, lat: number, lng: number): Promise<void> => {
+    const created = await post('/v1/employees', { full_name: name, external_hr_id: `ZM-${name}`, eligible: true });
+    assert.equal(created.statusCode, 201, created.body);
+    const empId = created.json().data.id;
+    await db!.withTenant(session.user.tenantId, session.user.id, (c) =>
+      c.query('UPDATE employee SET user_id=NULL WHERE id=$1', [empId]),
+    );
+    await db!.withTenant(session.user.tenantId, session.user.id, (c) =>
+      c.query(
+        `INSERT INTO ride_request(tenant_id, employee_id, direction, service_date, pickup_mode,
+                                  pickup_label, pickup_location)
+         VALUES (app_current_tenant(),$1,'inbound','2026-07-24','per_request',$2,
+                 ST_SetSRID(ST_MakePoint($4,$3),4326)::geography)
+         RETURNING id`,
+        [empId, name, lat, lng],
+      ),
+    );
+  };
+  await rider('OnRoute', 29.33, 48.07);
+  await rider('OffRoute', 29.33, 47.65);
+  // Offer both to this driver.
+  await db!.withTenant(session.user.tenantId, session.user.id, (c) =>
+    c.query(
+      `INSERT INTO ride_request_offer(tenant_id, request_id, driver_id)
+       SELECT app_current_tenant(), rr.id, $1 FROM ride_request rr
+       WHERE rr.service_date='2026-07-24' AND rr.status='open'
+       ON CONFLICT DO NOTHING`,
+      [drvId],
+    ),
+  );
+
+  const all = (await app.inject({
+    method: 'GET', url: '/v1/ride-requests?mine=driver&date=2026-07-24', headers: H,
+  })).json().data as Array<{ employee_name: string; matches_route: boolean | null }>;
+  const byName = new Map(all.map((r) => [r.employee_name, r.matches_route]));
+  assert.equal(byName.get('OnRoute'), true);
+  assert.equal(byName.get('OffRoute'), false);
+
+  const matched = (await app.inject({
+    method: 'GET', url: '/v1/ride-requests?mine=driver&date=2026-07-24&matchMyRoute=true', headers: H,
+  })).json().data as Array<{ employee_name: string }>;
+  assert.deepEqual(matched.map((r) => r.employee_name), ['OnRoute']);
+});
+
+test('the operational report pack answers over a live database', opts, async () => {
+  const token = (await login('admin@acme.com', 'Passw0rd!')).json().access_token as string;
+  const H = { authorization: `Bearer ${token}` };
+  const range = 'from=2026-07-01&to=2026-07-31';
+  const names = [
+    'driver-ops', 'vehicle-ops', 'trip-duration', 'inefficient-trips',
+    'fuel-efficiency', 'route-cost', 'attendance-discipline', 'plan-adherence',
+  ];
+  for (const name of names) {
+    const res = await app.inject({ method: 'GET', url: `/v1/reports/${name}?${range}`, headers: H });
+    assert.equal(res.statusCode, 200, `${name} → ${res.statusCode} ${res.body}`);
+    assert.deepEqual(res.json().data.range, { from: '2026-07-01', to: '2026-07-31' });
+  }
+});
+
+test('fuel-efficiency flags the bus that burns far more than the fleet', opts, async () => {
+  const session = (await login('admin@acme.com', 'Passw0rd!')).json();
+  const H = { authorization: `Bearer ${session.access_token}` };
+  const post = (url: string, payload: Record<string, unknown>) =>
+    app.inject({ method: 'POST', url, headers: H, payload });
+
+  // Three buses fill twice each: two run 8 km/L, the third only 4.
+  const fills: Array<[string, number, number, number]> = [
+    ['FE-A', 10000, 10800, 100], ['FE-B', 20000, 20800, 100], ['FE-C', 30000, 30400, 100],
+  ];
+  for (const [plate, odoStart, odoEnd, liters] of fills) {
+    const veh = (await post('/v1/vehicles', { plate_no: plate, capacity: 20, status: 'active' })).json().data.id;
+    await post('/v1/fuel-logs', { vehicle_id: veh, liters: 1, cost_amount: 0.3, odometer_km: odoStart, filled_at: '2026-07-05T06:00:00Z' });
+    await post('/v1/fuel-logs', { vehicle_id: veh, liters, cost_amount: 30, odometer_km: odoEnd, filled_at: '2026-07-20T06:00:00Z' });
+  }
+
+  const res = await app.inject({
+    method: 'GET', url: '/v1/reports/fuel-efficiency?from=2026-07-01&to=2026-07-31', headers: H,
+  });
+  assert.equal(res.statusCode, 200);
+  const data = res.json().data as {
+    vehicles: Array<{ plateNo: string; kmPerLiter: number | null; anomaly: boolean; reasons: string[] }>;
+  };
+  const c = data.vehicles.find((v) => v.plateNo === 'FE-C')!;
+  const a = data.vehicles.find((v) => v.plateNo === 'FE-A')!;
+  assert.ok(c.kmPerLiter !== null && a.kmPerLiter !== null && c.kmPerLiter < a.kmPerLiter);
+  assert.equal(c.anomaly, true);
+  assert.ok(c.reasons.includes('low_km_per_liter'));
+  assert.equal(a.anomaly, false);
+});
