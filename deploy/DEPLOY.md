@@ -24,6 +24,26 @@ worker, and nginx in front.
 
 ## 1. First deployment
 
+### The fast path
+
+On a fresh Ubuntu/Debian server, with your domain's A record already pointing
+at it:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/wessamsamir1-stack/etms/main/deploy/bootstrap.sh \
+  | sudo bash -s -- --domain api.example.com --email you@example.com
+```
+
+`deploy/bootstrap.sh` installs Docker if it is missing, generates every secret
+once into `deploy/.env.prod`, points nginx at your domain, brings the stack up,
+requests a Let's Encrypt certificate, and prints the API URL and the platform
+admin credentials. Re-running it is the upgrade path — secrets are kept and the
+migrations are idempotent.
+
+Everything below is the same thing done by hand.
+
+### By hand
+
 ```bash
 git clone <repo> && cd etms
 cp deploy/.env.prod.example deploy/.env.prod

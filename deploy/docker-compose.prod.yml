@@ -164,7 +164,10 @@ services:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/conf.d:/etc/nginx/conf.d:ro
       - ./nginx/certs:/etc/nginx/certs:ro
-      - certbot_webroot:/var/www/certbot:ro
+      # The ACME webroot is a bind mount, not a volume: certbot runs as a
+      # one-shot container writing to ./nginx/certbot on the host, and nginx has
+      # to serve exactly those files back.
+      - ./nginx/certbot:/var/www/certbot:ro
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/healthz >/dev/null || exit 1"]
       interval: 30s
@@ -173,4 +176,3 @@ services:
 
 volumes:
   db_data:
-  certbot_webroot:

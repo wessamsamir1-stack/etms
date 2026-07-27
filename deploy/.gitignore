@@ -4,3 +4,5 @@
 nginx/certs/*
 !nginx/certs/.gitkeep
 certbot/
+letsencrypt/
+.env.prod.bak
