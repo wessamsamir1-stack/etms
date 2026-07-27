@@ -111,6 +111,7 @@ flutter run -d chrome -t lib/main_development.dart \
 ```
 
 Deploy guide: [`../docs/etms/12-deployment.md`](../docs/etms/12-deployment.md).
+Production stack (pgBouncer + nginx + TLS): [`../deploy/DEPLOY.md`](../deploy/DEPLOY.md).
 
 > The live-DB integration tests are **not idempotent** — they create fixtures with
 > unique constraints (plate numbers, emails), so a second run against the same
@@ -139,10 +140,14 @@ client → POST /v1/auth/login → JWT{sub,tenant_id,permissions[]}
 
 ## Verification (actually executed here)
 - `npm run build` → **clean** (strict TS, `noUncheckedIndexedAccess`).
-- `npm test` → **76/76 passing**: engines (route optimizer, QR tokens, cost, notifications,
-  queue, SAP export, RBAC, password, TOTP incl. the RFC 6238 vector, rate limiter) + Fastify
-  integration + **live-DB integration** (login/refresh/MFA, RLS-isolated CRUD, dispatch +
-  trip lifecycle, bookings waitlist/promotion, GPS tracking + SOS, notification send).
+- `npm test` → **106 of 107 passing**: engines (route optimizer, QR tokens, cost, notifications,
+  queue, SAP export, RBAC, password, TOTP incl. the RFC 6238 vector, rate limiter, fuel-efficiency
+  and detour scoring) + Fastify integration + **live-DB integration** (login/refresh/MFA,
+  RLS-isolated CRUD, dispatch + trip lifecycle, the trip waiting list — full bus → queue →
+  auto-promotion, `ST_Covers` zone matching for ride requests, the eight operational reports,
+  GPS tracking + SOS, notification send).
+  The one failure is older than this work: a CRUD test asserts an `Acme HQ` site that the
+  seed script does not create.
 - **Live end-to-end:** booted the API against a real PostgreSQL 16 + PostGIS with the full
   `db/migrations` applied, seeded two tenants, and confirmed:
   - `GET /v1/dashboard/kpis` for Acme returns **its** counts only — never Globex's.

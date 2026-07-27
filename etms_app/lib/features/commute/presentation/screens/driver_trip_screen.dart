@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../core/access/permissions.dart';
 import '../../data/commute_models.dart';
 import '../providers/commute_providers.dart';
 
@@ -92,6 +93,12 @@ class _DriverBody extends ConsumerWidget {
                   _CountTile(value: c.remaining, label: ar ? 'متبقّي' : 'Remaining', color: const Color(0xFFC9871A)),
                 ],
               ),
+              // Seats (db V0031). Only shown when the trip has a known capacity —
+              // an uncapped trip has nothing meaningful to report here.
+              if (manifest.capacity != null) ...[
+                const SizedBox(height: 12),
+                _SeatsBar(manifest: manifest, ar: ar),
+              ],
               const SizedBox(height: 12),
               Text(ar ? 'قائمة الركّاب' : 'Passenger manifest', style: theme.textTheme.labelLarge),
               const SizedBox(height: 8),
@@ -103,6 +110,11 @@ class _DriverBody extends ConsumerWidget {
                       ? () => run(() => svc.board(tripId, p.id))
                       : null,
                 ),
+              // Who is still waiting for a seat on this trip.
+              if (manifest.waiting > 0) ...[
+                const SizedBox(height: 12),
+                _WaitlistSection(tripId: tripId, manifest: manifest, ar: ar),
+              ],
             ],
           ),
         ),
@@ -137,6 +149,157 @@ class _DriverBody extends ConsumerWidget {
                 ),
               ],
             ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Seats left on the bus, and how many are queued behind them (db V0031).
+class _SeatsBar extends StatelessWidget {
+  const _SeatsBar({required this.manifest, required this.ar});
+  final TripManifest manifest;
+  final bool ar;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final capacity = manifest.capacity ?? 0;
+    final free = manifest.remainingSeats ?? 0;
+    final full = manifest.isFull;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Row(
+          children: [
+            Icon(
+              full ? Icons.event_seat : Icons.event_seat_outlined,
+              color: full ? const Color(0xFFE1554E) : const Color(0xFF1E9E58),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    full
+                        ? (ar ? 'الباص ممتلئ' : 'The bus is full')
+                        : (ar ? '$free مقعد متاح' : '$free seats left'),
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      color: full ? const Color(0xFFE1554E) : null,
+                    ),
+                  ),
+                  Text(
+                    ar
+                        ? '${manifest.occupied} من $capacity'
+                        : '${manifest.occupied} of $capacity taken',
+                    style: theme.textTheme.labelSmall,
+                  ),
+                ],
+              ),
+            ),
+            if (manifest.waiting > 0)
+              Chip(
+                visualDensity: VisualDensity.compact,
+                label: Text(
+                  ar ? '${manifest.waiting} في الانتظار' : '${manifest.waiting} waiting',
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// The trip's waiting list. Promotion is automatic the moment a seat frees, so
+/// this is a read-only view for the driver — ops can force a pass from here.
+class _WaitlistSection extends ConsumerWidget {
+  const _WaitlistSection({required this.tripId, required this.manifest, required this.ar});
+  final String tripId;
+  final TripManifest manifest;
+  final bool ar;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final async = ref.watch(tripWaitlistProvider(tripId));
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Text(
+                ar ? 'قائمة الانتظار' : 'Waiting list',
+                style: theme.textTheme.labelLarge,
+              ),
+            ),
+            if (ref.can('waitlist.manage') && !manifest.isFull)
+              TextButton(
+                onPressed: () async {
+                  await ref.read(commuteServiceProvider).promoteWaitlist(tripId);
+                  ref
+                    ..invalidate(tripWaitlistProvider(tripId))
+                    ..invalidate(tripManifestProvider(tripId));
+                },
+                child: Text(ar ? 'ترقية' : 'Promote'),
+              ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        async.when(
+          loading: () => const Padding(
+            padding: EdgeInsets.all(12),
+            child: Center(child: CircularProgressIndicator()),
+          ),
+          error: (e, _) => Text(
+            ar ? 'تعذّر تحميل قائمة الانتظار' : 'Could not load the waiting list',
+          ),
+          data: (w) => Column(
+            children: [
+              for (final e in w.waiting)
+                Card(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  child: ListTile(
+                    dense: true,
+                    leading: CircleAvatar(
+                      radius: 14,
+                      backgroundColor: const Color(0xFF8494AC),
+                      child: Text(
+                        '${e.position}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                    title: Text(e.fullName),
+                    subtitle: Text(
+                      e.source == 'ride_request'
+                          ? (ar ? 'من طلب توصيل' : 'From a ride request')
+                          : (ar ? 'في انتظار مقعد' : 'Waiting for a seat'),
+                    ),
+                    trailing: ref.can('waitlist.manage')
+                        ? IconButton(
+                            tooltip: ar ? 'إزالة' : 'Remove',
+                            icon: const Icon(Icons.close),
+                            onPressed: () async {
+                              await ref
+                                  .read(commuteServiceProvider)
+                                  .cancelWaitlistEntry(tripId, e.id);
+                              ref
+                                ..invalidate(tripWaitlistProvider(tripId))
+                                ..invalidate(tripManifestProvider(tripId));
+                            },
+                          )
+                        : null,
+                  ),
+                ),
+            ],
           ),
         ),
       ],

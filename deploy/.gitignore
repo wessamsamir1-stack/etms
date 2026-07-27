@@ -1,0 +1,8 @@
+# Real production secrets and certificates never get committed.
+.env.prod
+.env
+nginx/certs/*
+!nginx/certs/.gitkeep
+certbot/
+letsencrypt/
+.env.prod.bak

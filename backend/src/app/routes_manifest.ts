@@ -3,6 +3,8 @@ import { z } from 'zod';
 import { ApiError, authenticate, getPrincipal, requirePermission } from './middleware/context';
 import { parse } from './validate';
 import { effectiveWaitSeconds, manifestCounts, commuteMessages, type PassengerStatus } from '../domain/commute/manifest';
+import { enqueuePush } from './push_outbox';
+import { joinWaitlist, lockTrip, promoteWaitlist, syncSeatsTaken, tripSeats } from './waitlist';
 import type { Deps } from './routes';
 
 const uuid = z.object({ id: z.string().uuid() });
@@ -74,13 +76,43 @@ export async function registerManifestRoutes(app: FastifyInstance, deps: Deps): 
   });
 
   // ---- Add a passenger to the manifest ------------------------------------
+  // Capacity guard: the bus only holds what trip.capacity (or the assigned
+  // vehicle) says. When it is full the employee joins the trip's WAITING LIST
+  // (202) instead of being rejected, and is promoted automatically as soon as a
+  // seat frees. Send `waitlist: false` to get the plain 409 instead.
   app.post('/v1/trips/:id/passengers', { preHandler: [auth, requirePermission('manifest.manage')] }, async (req, reply) => {
     const { id } = parse(uuid, req.params);
-    const b = parse(z.object({ employee_id: z.string().uuid(), trip_stop_id: z.string().uuid().optional() }), req.body);
+    const b = parse(
+      z.object({
+        employee_id: z.string().uuid(),
+        trip_stop_id: z.string().uuid().optional(),
+        waitlist: z.boolean().default(true),
+      }),
+      req.body,
+    );
     const p = getPrincipal(req);
-    const row = await requireDb().withTenant(p.tenantId, p.userId, async (c) => {
+    const result = await requireDb().withTenant(p.tenantId, p.userId, async (c) => {
       const emp = (await c.query('SELECT id FROM employee WHERE id=$1 AND deleted_at IS NULL', [b.employee_id])).rows[0];
       if (!emp) throw new ApiError(422, 'VALIDATION_ERROR', 'Employee not found');
+      // Serializes the check-then-insert against a concurrent add.
+      if (!(await lockTrip(c, id))) throw new ApiError(404, 'NOT_FOUND', 'Trip not found');
+
+      const seats = await tripSeats(c, id);
+      if (seats.remaining !== null && seats.remaining <= 0) {
+        const onManifest = (
+          await c.query('SELECT 1 FROM trip_passenger WHERE trip_id=$1 AND employee_id=$2', [id, b.employee_id])
+        ).rowCount;
+        if (onManifest) throw new ApiError(409, 'CONFLICT', 'Employee already on this manifest');
+        if (!b.waitlist) throw new ApiError(409, 'CONFLICT', 'The trip is full');
+        const entry = await joinWaitlist(c, {
+          tripId: id,
+          employeeId: b.employee_id,
+          tripStopId: b.trip_stop_id ?? null,
+          createdBy: p.userId,
+        });
+        return { waitlisted: true as const, entry, seats };
+      }
+
       const r = await c.query(
         `INSERT INTO trip_passenger(tenant_id, trip_id, trip_stop_id, employee_id, updated_by)
          VALUES (app_current_tenant(),$1,$2,$3,$4)
@@ -88,10 +120,108 @@ export async function registerManifestRoutes(app: FastifyInstance, deps: Deps): 
         [id, b.trip_stop_id ?? null, b.employee_id, p.userId],
       );
       if (r.rowCount === 0) throw new ApiError(409, 'CONFLICT', 'Employee already on this manifest');
-      return r.rows[0];
+      await syncSeatsTaken(c, id);
+      return { waitlisted: false as const, passenger: r.rows[0], seats: await tripSeats(c, id) };
     });
+
+    if (result.waitlisted) {
+      reply.code(202);
+      return {
+        data: result.entry,
+        waitlisted: true,
+        position: result.entry.position,
+        seats: result.seats,
+        message: {
+          ar: commuteMessages.waitlisted(result.entry.position, 'ar'),
+          en: commuteMessages.waitlisted(result.entry.position, 'en'),
+        },
+      };
+    }
     reply.code(201);
-    return { data: row };
+    return { data: result.passenger, waitlisted: false, seats: result.seats };
+  });
+
+  // ---- Trip waiting list ---------------------------------------------------
+  app.get('/v1/trips/:id/waitlist', { preHandler: [auth, requirePermission('waitlist.read')] }, async (req) => {
+    const { id } = parse(uuid, req.params);
+    const q = parse(z.object({ status: z.enum(['waiting', 'promoted', 'cancelled', 'expired']).optional() }), req.query);
+    const p = getPrincipal(req);
+    return requireDb().withTenant(p.tenantId, p.userId, async (c) => {
+      const rows = (
+        await c.query(
+          `SELECT w.id, w.employee_id, e.full_name, w.trip_stop_id, w.position, w.status,
+                  w.source, w.ride_request_id, w.trip_passenger_id, w.promoted_at, w.note, w.created_at
+           FROM trip_waitlist w JOIN employee e ON e.id = w.employee_id
+           WHERE w.trip_id=$1 AND ($2::text IS NULL OR w.status=$2)
+           ORDER BY w.status='waiting' DESC, w.position`,
+          [id, q.status ?? null],
+        )
+      ).rows;
+      return { data: rows, seats: await tripSeats(c, id) };
+    });
+  });
+
+  // Ops can queue someone explicitly (e.g. a late request for a known-full bus).
+  app.post('/v1/trips/:id/waitlist', { preHandler: [auth, requirePermission('waitlist.manage')] }, async (req, reply) => {
+    const { id } = parse(uuid, req.params);
+    const b = parse(
+      z.object({
+        employee_id: z.string().uuid(),
+        trip_stop_id: z.string().uuid().optional(),
+        note: z.string().max(300).optional(),
+      }),
+      req.body,
+    );
+    const p = getPrincipal(req);
+    const out = await requireDb().withTenant(p.tenantId, p.userId, async (c) => {
+      const emp = (await c.query('SELECT id FROM employee WHERE id=$1 AND deleted_at IS NULL', [b.employee_id])).rows[0];
+      if (!emp) throw new ApiError(422, 'VALIDATION_ERROR', 'Employee not found');
+      if (!(await lockTrip(c, id))) throw new ApiError(404, 'NOT_FOUND', 'Trip not found');
+      const already = (
+        await c.query(
+          `SELECT 1 FROM trip_passenger WHERE trip_id=$1 AND employee_id=$2
+             AND status IN ('expected','on_the_way','boarded')`,
+          [id, b.employee_id],
+        )
+      ).rowCount;
+      if (already) throw new ApiError(409, 'CONFLICT', 'Employee is already on this manifest');
+      const entry = await joinWaitlist(c, {
+        tripId: id,
+        employeeId: b.employee_id,
+        tripStopId: b.trip_stop_id ?? null,
+        note: b.note ?? null,
+        createdBy: p.userId,
+      });
+      // A seat may be free right now — promote immediately rather than waiting.
+      const promoted = await promoteWaitlist(c, id, p.userId);
+      return { entry, promoted, seats: await tripSeats(c, id) };
+    });
+    reply.code(out.promoted.some((x) => x.waitlistId === out.entry.id) ? 201 : 202);
+    return { data: out.entry, promoted: out.promoted, seats: out.seats };
+  });
+
+  // Leave / withdraw a queue entry (a cancelled entry never gets promoted).
+  app.delete('/v1/trips/:id/waitlist/:wid', { preHandler: [auth, requirePermission('waitlist.manage')] }, async (req) => {
+    const params = parse(z.object({ id: z.string().uuid(), wid: z.string().uuid() }), req.params);
+    const p = getPrincipal(req);
+    const res = await requireDb().withTenant(p.tenantId, p.userId, (c) =>
+      c.query(
+        "UPDATE trip_waitlist SET status='cancelled' WHERE id=$1 AND trip_id=$2 AND status='waiting' RETURNING *",
+        [params.wid, params.id],
+      ),
+    );
+    if (res.rowCount === 0) throw new ApiError(409, 'CONFLICT', 'Waiting-list entry not found or already resolved');
+    return { data: res.rows[0] };
+  });
+
+  // Manual kick of the promotion pass (it also runs on every seat-freeing event).
+  app.post('/v1/trips/:id/waitlist/promote', { preHandler: [auth, requirePermission('waitlist.manage')] }, async (req) => {
+    const { id } = parse(uuid, req.params);
+    const p = getPrincipal(req);
+    return requireDb().withTenant(p.tenantId, p.userId, async (c) => {
+      const promoted = await promoteWaitlist(c, id, p.userId);
+      return { data: promoted, promoted: promoted.length, seats: await tripSeats(c, id) };
+    });
   });
 
   // ---- Employee: my own ride history (daily commute) ----------------------
@@ -131,7 +261,22 @@ export async function registerManifestRoutes(app: FastifyInstance, deps: Deps): 
       const countdownSeconds = current?.departs_at
         ? Math.max(0, Math.round((new Date(current.departs_at).getTime() - Date.now()) / 1000))
         : null;
-      return { data: { passengers, stops, currentStop: current, counts, countdownSeconds } };
+      // Seat accounting for the driver/ops screen: capacity, taken, how many are
+      // still free (null = the trip has no known capacity) and who is queued.
+      const seats = await tripSeats(c, id);
+      return {
+        data: {
+          passengers,
+          stops,
+          currentStop: current,
+          counts,
+          countdownSeconds,
+          capacity: seats.capacity,
+          occupied: seats.occupied,
+          remaining_seats: seats.remaining,
+          waiting: seats.waiting,
+        },
+      };
     });
   });
 
@@ -243,9 +388,14 @@ export async function registerManifestRoutes(app: FastifyInstance, deps: Deps): 
         ar: commuteMessages.noShow('ar'),
         en: commuteMessages.noShow('en'),
       });
+      // Every no-show gives a seat back. Anyone still queued for a LATER stop on
+      // this trip can now be promoted onto the manifest.
+      await syncSeatsTaken(c, params.id);
+      const promoted = await promoteWaitlist(c, params.id, p.userId);
       return {
         data: { stopId: params.stopId, status: 'departed', noShow: noShow.map((n) => n.employee_id) },
         notificationsQueued: queued,
+        promotedFromWaitlist: promoted,
         message: { ar: commuteMessages.noShow('ar'), en: commuteMessages.noShow('en') },
       };
     });
@@ -256,39 +406,20 @@ export async function registerManifestRoutes(app: FastifyInstance, deps: Deps): 
     const params = parse(z.object({ id: z.string().uuid(), pid: z.string().uuid() }), req.params);
     const b = parse(z.object({ status: z.enum(['excused', 'on_leave', 'removed', 'expected']), note: z.string().max(300).optional() }), req.body);
     const p = getPrincipal(req);
-    const res = await requireDb().withTenant(p.tenantId, p.userId, (c) =>
-      c.query(
+    const out = await requireDb().withTenant(p.tenantId, p.userId, async (c) => {
+      const res = await c.query(
         `UPDATE trip_passenger SET status=$3, note=coalesce($4,note), updated_by=$5
          WHERE id=$1 AND trip_id=$2 AND status <> 'boarded' RETURNING *`,
         [params.pid, params.id, b.status, b.note ?? null, p.userId],
-      ),
-    );
-    if (res.rowCount === 0) throw new ApiError(409, 'CONFLICT', 'Passenger not found or already boarded');
-    return { data: res.rows[0] };
+      );
+      if (res.rowCount === 0) throw new ApiError(409, 'CONFLICT', 'Passenger not found or already boarded');
+      await syncSeatsTaken(c, params.id);
+      // Excusing / removing a passenger frees their place — hand it to whoever
+      // has been waiting longest.
+      const promoted =
+        b.status === 'expected' ? [] : await promoteWaitlist(c, params.id, p.userId);
+      return { row: res.rows[0], promoted };
+    });
+    return { data: out.row, promotedFromWaitlist: out.promoted };
   });
-}
-
-/**
- * Enqueue a push notification per recipient into the `notification` outbox
- * (status 'queued'). A worker + push provider delivers queued rows — that
- * integration is the remaining piece; the messages are created here.
- */
-async function enqueuePush(
-  c: import('pg').PoolClient,
-  recipients: ReadonlyArray<{ user_id: string | null }>,
-  templateCode: string,
-  tripId: string,
-  message: { ar: string; en: string },
-): Promise<number> {
-  let n = 0;
-  for (const r of recipients) {
-    if (!r.user_id) continue;
-    await c.query(
-      `INSERT INTO notification(tenant_id, user_id, channel, template_code, payload, status)
-       VALUES (app_current_tenant(), $1, 'push', $2, $3::jsonb, 'queued')`,
-      [r.user_id, templateCode, JSON.stringify({ tripId, message })],
-    );
-    n++;
-  }
-  return n;
 }

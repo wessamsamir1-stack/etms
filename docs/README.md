@@ -31,6 +31,7 @@ written. Documents are ordered; read them in sequence.
 | 17 | [Daily-Commute Model](./17-daily-commute-model.md) | No seat reservation — passenger manifest with attendance statuses, stop arrival + admin waiting timer + auto No-Show, "I'm on the way", ratings, lost & found, white-label, operational metrics |
 | 18 | [Organization Structure & Roles](./18-org-structure-and-roles.md) | Company → Brand → Branch → Employees hierarchy; Super/Company/Transport/HR/Branch admin + Driver + Employee roles with permission sets |
 | 19 | [Super-Admin Platform API](./19-platform-super-admin.md) | Cross-tenant (BYPASSRLS) platform layer: operator login, company provisioning, subscription/plan management, per-tenant feature flags, platform audit — kept separate from the tenant-scoped API |
+| 20 | [Waiting List, Zone Matching & Ops Reports](./20-waitlist-zones-and-ops-reports.md) | Bus-capacity guard with an auto-promoting trip waiting list, ST_Covers zone matching so a driver only sees requests on their route, and the operational report pack (driver/vehicle ops, trip duration, detour detection, fuel anomalies, route cost, attendance, plan adherence) |
 
 ## At a Glance
 

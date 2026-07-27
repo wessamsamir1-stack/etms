@@ -9,11 +9,21 @@ import { ApiError } from '../middleware/context';
  */
 export class Db {
   private url?: string;
+  private listenerUrl?: string;
   constructor(private readonly pool: Pool) {}
 
-  static fromUrl(databaseUrl: string): Db {
+  /**
+   * `listenerUrl` (LISTENER_DATABASE_URL) is where LISTEN/NOTIFY connects. In
+   * production the API talks to Postgres through pgBouncer in **transaction**
+   * pooling mode, which cannot carry a session-lifetime LISTEN — the connection
+   * goes back to the pool after every statement and notifications are lost. So
+   * the listener is pointed straight at Postgres while normal queries keep the
+   * pooler. Unset → the same URL as everything else (fine for a direct connection).
+   */
+  static fromUrl(databaseUrl: string, listenerUrl?: string): Db {
     const db = new Db(new Pool({ connectionString: databaseUrl, max: 10 }));
     db.url = databaseUrl;
+    db.listenerUrl = listenerUrl ?? databaseUrl;
     return db;
   }
 
@@ -25,8 +35,9 @@ export class Db {
    * `client.on('notification', …)`, and closes it on shutdown.
    */
   async createListener(): Promise<Client> {
-    if (!this.url) throw new Error('Db has no connection string for a listener');
-    const client = new Client({ connectionString: this.url });
+    const url = this.listenerUrl ?? this.url;
+    if (!url) throw new Error('Db has no connection string for a listener');
+    const client = new Client({ connectionString: url });
     await client.connect();
     return client;
   }

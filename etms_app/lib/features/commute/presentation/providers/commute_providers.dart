@@ -28,6 +28,33 @@ class CommuteService {
   Future<void> onTheWay(String tripId) =>
       _api.post<Map<String, dynamic>>('/trips/$tripId/on-the-way');
 
+  // ---- Waiting list (db V0031) ------------------------------------------
+  Future<TripWaitlist> waitlist(String tripId, {String? status}) async {
+    final res = await _api.get<Map<String, dynamic>>(
+      '/trips/$tripId/waitlist',
+      query: {if (status != null) 'status': status},
+    );
+    return TripWaitlist.fromJson(res);
+  }
+
+  /// Queue an employee. The server promotes them straight away when a seat is
+  /// already free, so the caller just refreshes afterwards.
+  Future<void> joinWaitlist(String tripId, String employeeId, {String? note}) =>
+      _api.post<Map<String, dynamic>>(
+        '/trips/$tripId/waitlist',
+        body: {
+          'employee_id': employeeId,
+          if (note != null && note.isNotEmpty) 'note': note,
+        },
+      );
+
+  Future<void> cancelWaitlistEntry(String tripId, String entryId) =>
+      _api.delete<Map<String, dynamic>>('/trips/$tripId/waitlist/$entryId');
+
+  /// Run the promotion pass by hand (it also runs on every seat-freeing event).
+  Future<void> promoteWaitlist(String tripId) =>
+      _api.post<Map<String, dynamic>>('/trips/$tripId/waitlist/promote');
+
   // Rating (1..5 each, all optional).
   Future<void> rateTrip(
     String tripId, {
@@ -67,6 +94,12 @@ final commuteServiceProvider =
 final tripManifestProvider =
     FutureProvider.family<TripManifest, String>((ref, tripId) async {
   return ref.watch(commuteServiceProvider).manifest(tripId);
+});
+
+/// The waiting list for a trip (GET /v1/trips/:id/waitlist).
+final tripWaitlistProvider =
+    FutureProvider.family<TripWaitlist, String>((ref, tripId) async {
+  return ref.watch(commuteServiceProvider).waitlist(tripId);
 });
 
 /// The employee's own ride history (GET /v1/my/rides).

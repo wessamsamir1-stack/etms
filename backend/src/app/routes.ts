@@ -23,6 +23,7 @@ import { registerRideRequestRoutes } from './routes_ride_requests';
 import { registerManifestRoutes } from './routes_manifest';
 import { registerFeedbackRoutes } from './routes_feedback';
 import { registerFuelViolationRoutes } from './routes_fuel_violations';
+import { registerReportRoutes } from './routes_reports';
 import { registerPlatformRoutes } from './routes_platform';
 import { registerSsoRoutes } from './routes_sso';
 import { registerSamlRoutes } from './routes_saml';
@@ -85,6 +86,7 @@ export async function registerRoutes(app: FastifyInstance, deps: Deps): Promise<
   await registerManifestRoutes(app, deps);
   await registerFeedbackRoutes(app, deps);
   await registerFuelViolationRoutes(app, deps);
+  await registerReportRoutes(app, deps);
   await registerPlatformRoutes(app, deps);
 
   // ---- Route Optimization Engine (pure) ------------------------------------

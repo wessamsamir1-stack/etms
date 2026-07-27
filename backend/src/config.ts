@@ -8,6 +8,13 @@ export interface Config {
    * convenient for local/dev where the connection is already an owner/superuser.
    */
   platformDatabaseUrl?: string | undefined;
+  /**
+   * Direct-to-Postgres connection for the realtime LISTEN/NOTIFY channel. In
+   * production `databaseUrl` points at pgBouncer in transaction pooling mode,
+   * which cannot hold a session-lifetime LISTEN, so the tracking hub needs a
+   * connection that bypasses the pooler. Falls back to databaseUrl when unset.
+   */
+  listenerDatabaseUrl?: string | undefined;
   jwtSecret: string;
   qrSecret: string;
   env: string;
@@ -70,6 +77,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     port: Number(env.PORT ?? 8080),
     databaseUrl: env.DATABASE_URL,
     platformDatabaseUrl: env.PLATFORM_DATABASE_URL ?? env.DATABASE_URL,
+    listenerDatabaseUrl: env.LISTENER_DATABASE_URL ?? env.DATABASE_URL,
     jwtSecret: resolveSecret('JWT_SECRET', env.JWT_SECRET, DEFAULT_JWT_SECRET, isProduction),
     qrSecret: resolveSecret('QR_SECRET', env.QR_SECRET, DEFAULT_QR_SECRET, isProduction),
     env: nodeEnv,

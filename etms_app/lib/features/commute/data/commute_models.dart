@@ -112,6 +112,10 @@ class TripManifest {
     required this.counts,
     this.currentStop,
     this.countdownSeconds,
+    this.capacity,
+    this.occupied = 0,
+    this.remainingSeats,
+    this.waiting = 0,
   });
 
   final List<Passenger> passengers;
@@ -120,9 +124,25 @@ class TripManifest {
   final TripStop? currentStop;
   final int? countdownSeconds;
 
+  /// Seats the bus has: the trip override, else the assigned vehicle's
+  /// capacity. Null means the trip has no known capacity (uncapped).
+  final int? capacity;
+
+  /// Places taken on the active manifest.
+  final int occupied;
+
+  /// Free seats; null when [capacity] is unknown.
+  final int? remainingSeats;
+
+  /// How many employees are queued on the trip's waiting list.
+  final int waiting;
+
+  /// True when the bus is known to be full — the next employee added is queued.
+  bool get isFull => remainingSeats != null && remainingSeats! <= 0;
+
   factory TripManifest.fromJson(Map<String, dynamic> j) {
-    final data = (j['data'] as Map<String, dynamic>?) ?? j;
-    final cur = data['currentStop'] as Map<String, dynamic>?;
+    final data = _map(j['data']) ?? j;
+    final cur = _map(data['currentStop']);
     return TripManifest(
       passengers: [
         for (final p in (data['passengers'] as List? ?? const []))
@@ -132,9 +152,97 @@ class TripManifest {
         for (final s in (data['stops'] as List? ?? const []))
           TripStop.fromJson(s as Map<String, dynamic>),
       ],
-      counts: ManifestCounts.fromJson(data['counts'] as Map<String, dynamic>?),
+      counts: ManifestCounts.fromJson(_map(data['counts'])),
       currentStop: cur == null ? null : TripStop.fromJson(cur),
       countdownSeconds: (data['countdownSeconds'] as num?)?.toInt(),
+      capacity: (data['capacity'] as num?)?.toInt(),
+      occupied: (data['occupied'] as num?)?.toInt() ?? 0,
+      remainingSeats: (data['remaining_seats'] as num?)?.toInt(),
+      waiting: (data['waiting'] as num?)?.toInt() ?? 0,
+    );
+  }
+}
+
+/// One place in a trip's waiting list (db V0031). Employees land here when the
+/// bus is full and are promoted onto the manifest as soon as a seat frees.
+enum WaitlistStatus { waiting, promoted, cancelled, expired, unknown }
+
+WaitlistStatus waitlistStatusFrom(String? s) {
+  switch (s) {
+    case 'waiting':
+      return WaitlistStatus.waiting;
+    case 'promoted':
+      return WaitlistStatus.promoted;
+    case 'cancelled':
+      return WaitlistStatus.cancelled;
+    case 'expired':
+      return WaitlistStatus.expired;
+    default:
+      return WaitlistStatus.unknown;
+  }
+}
+
+class WaitlistEntry {
+  const WaitlistEntry({
+    required this.id,
+    required this.employeeId,
+    required this.fullName,
+    required this.position,
+    required this.status,
+    this.source = 'manifest',
+    this.promotedAt,
+  });
+
+  final String id;
+  final String employeeId;
+  final String fullName;
+
+  /// 1-based place in the queue; promotion always takes the lowest.
+  final int position;
+  final WaitlistStatus status;
+
+  /// 'manifest' (added by ops) or 'ride_request' (a claimed ride).
+  final String source;
+  final DateTime? promotedAt;
+
+  factory WaitlistEntry.fromJson(Map<String, dynamic> j) => WaitlistEntry(
+        id: '${j['id']}',
+        employeeId: '${j['employee_id']}',
+        fullName: '${j['full_name'] ?? ''}',
+        position: (j['position'] as num?)?.toInt() ?? 0,
+        status: waitlistStatusFrom(j['status'] as String?),
+        source: '${j['source'] ?? 'manifest'}',
+        promotedAt: _dt(j['promoted_at']),
+      );
+}
+
+/// GET /v1/trips/:id/waitlist — the queue plus the trip's seat accounting.
+class TripWaitlist {
+  const TripWaitlist({
+    required this.entries,
+    this.capacity,
+    this.occupied = 0,
+    this.remainingSeats,
+  });
+
+  final List<WaitlistEntry> entries;
+  final int? capacity;
+  final int occupied;
+  final int? remainingSeats;
+
+  List<WaitlistEntry> get waiting =>
+      [for (final e in entries) if (e.status == WaitlistStatus.waiting) e];
+
+  factory TripWaitlist.fromJson(Map<String, dynamic> j) {
+    final seats = _map(j['seats']) ?? const <String, dynamic>{};
+    return TripWaitlist(
+      entries: [
+        for (final e in (j['data'] as List? ?? const []))
+          WaitlistEntry.fromJson(e as Map<String, dynamic>),
+      ],
+      capacity: (seats['capacity'] as num?)?.toInt(),
+      occupied: (seats['occupied'] as num?)?.toInt() ?? 0,
+      remainingSeats: (seats['remaining'] as num?)?.toInt(),
     );
   }
 }
@@ -165,3 +273,7 @@ class MyRide {
 }
 
 DateTime? _dt(Object? v) => v is String ? DateTime.tryParse(v) : null;
+
+/// Tolerant map access: json-decoded maps are `Map<String, dynamic>` but
+/// literals (e.g. in tests) may be `Map<dynamic, dynamic>`.
+Map<String, dynamic>? _map(Object? v) => v is Map ? v.cast<String, dynamic>() : null;

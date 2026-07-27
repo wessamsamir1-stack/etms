@@ -49,7 +49,9 @@ Set via the platform's secret manager (never in the image). See `.env.example`.
 
 | Var | Who | Purpose |
 |-----|-----|---------|
-| `DATABASE_URL` | API | `etms_app_login` connection (RLS-enforced) |
+| `DATABASE_URL` | API | `etms_app_login` connection (RLS-enforced); the pooler in production |
+| `LISTENER_DATABASE_URL` | API | direct-to-Postgres connection for live-tracking `LISTEN/NOTIFY` (a transaction pooler cannot hold a `LISTEN`). Defaults to `DATABASE_URL` |
+| `PLATFORM_DATABASE_URL` | API | cross-tenant Super-Admin connection (BYPASSRLS role) |
 | `MIGRATE_DATABASE_URL` | migrate job | admin connection for DDL |
 | `APP_DB_USER` / `APP_DB_PASSWORD` | migrate job | the app login role |
 | `JWT_SECRET` | API | verifies access tokens (rotate carefully) |
@@ -78,6 +80,19 @@ type-checks, tests, and builds it; `backend-deploy.yml` publishes it to GHCR on 
 docker compose -f backend/docker-compose.yml up --build
 # db → migrate (applies migrations + creates etms_app_login) → api (as that role)
 ```
+
+## 7b. Production stack (single host)
+A ready-made production compose file lives in `deploy/` — db, pgBouncer
+(transaction pooling), the migrate job, the API, the notification worker and an
+SSE-aware nginx:
+```bash
+cp deploy/.env.prod.example deploy/.env.prod    # fill in every secret
+docker compose -f deploy/docker-compose.prod.yml --env-file deploy/.env.prod up -d --build
+```
+Two details there are easy to get wrong and are handled for you — nginx must not
+buffer `/v1/tracking/stream`, and the API's `LISTEN/NOTIFY` connection must skip
+the transaction pooler (`LISTENER_DATABASE_URL`). See **`deploy/DEPLOY.md`** for
+the runbook, the reasoning and the operational commands.
 
 ## 8. Rollout sequence (staging/prod)
 1. Build + push the image (CI on tag → GHCR).

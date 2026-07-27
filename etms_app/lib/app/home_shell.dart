@@ -88,12 +88,28 @@ class _ProfileTab extends ConsumerWidget {
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => context.push(AppRoutes.violations),
               ),
+            if (ref.can('ride_request.claim'))
+              ListTile(
+                leading: const Icon(Icons.hail_outlined),
+                title: Text(l10n.localeName == 'ar' ? 'طلبات التوصيل' : 'Ride requests'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => context.push(AppRoutes.rideRequests),
+              ),
             if (ref.can('report.operational'))
               ListTile(
                 leading: const Icon(Icons.insert_chart_outlined),
                 title: Text(l10n.localeName == 'ar' ? 'تقارير الأسطول' : 'Fleet reports'),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => context.push(AppRoutes.fleetReports),
+              ),
+            if (ref.can('report.operational'))
+              ListTile(
+                leading: const Icon(Icons.query_stats_outlined),
+                title: Text(
+                  l10n.localeName == 'ar' ? 'التقارير التشغيلية' : 'Operational reports',
+                ),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => context.push(AppRoutes.opsReports),
               ),
             if (ref.watch(isAdminUserProvider))
               ListTile(
